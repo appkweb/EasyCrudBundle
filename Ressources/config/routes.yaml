@@ -1,0 +1,3 @@
+appkweb_easy_crud_bundle:
+  path:       /generator/index.html
+  controller: @EasyCrudBundle\Controller\DefaultController::index

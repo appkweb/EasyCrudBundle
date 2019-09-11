@@ -1,0 +1,40 @@
+{% for entity in entities %}
+    {% if entity.list and  entity.add %}
+        <li class="nav-item has-treeview {% if page == entity.classname ~ "_add" %}menu-open{% endif %}">
+            <a href="#"
+               class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
+                <i class="nav-icon far fa-circle"></i>
+                <p>
+                    {{ entity.label }}
+                    <i class="right fas fa-angle-left"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="{{ path('appkweb_easy_crud_generator_list') }}"
+                       class="nav-link">
+                        <i class="fa fa-list nav-icon"></i>
+                        <p>Liste</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ path('appkweb_easy_crud_add',{classname:entity.className|lower }) }}"
+                       class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
+                        <i class="far fa fa-plus nav-icon"></i>
+                        <p>Ajouter</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        {#                <li class="nav-item">#}
+        {#                    <a href="pages/widgets.html" class="nav-link">#}
+        {#                        <i class="nav-icon fas fa-th"></i>#}
+        {#                        <p>#}
+        {#                            Simple menu#}
+        {#                            <span class="right badge badge-danger">New</span>#}
+        {#                        </p>#}
+        {#                    </a>#}
+        {#                </li>#}
+    {% else %}
+    {% endif %}
+{% endfor %}

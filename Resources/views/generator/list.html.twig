@@ -1,0 +1,50 @@
+{% extends "@EasyCrud/base.html.twig" %}
+
+{% block title %}Entity generator{% endblock %}
+{% block sub_title %}List of entities{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-body text-center">
+                <table id="datatable" class="table table-bordered table-hover text-center">
+                    <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th>Entity name</th>
+                        <th>Label</th>
+                        <th>Prefix</th>
+                        <th>Classname</th>
+                        <th>Visible</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                        <th>Add</th>
+                        <th>List</th>
+                        <th>Order</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for entity in entities %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('appkweb_easy_crud_generator_add',{className:entity.className}) }}"><span class="fa fa-edit"></span></a>
+                            </td>
+                            <td>{{ entity.entityName }}</td>
+                            <td>{{ entity.label }}</td>
+                            <td>{{ entity.prefix }}</td>
+                            <td>{{ entity.className }}</td>
+                            <td>{{ entity.visible  ? 'True':'False' }}</td>
+                            <td>{{ entity.edit  ? 'True':'False'}}</td>
+                            <td>{{ entity.remove  ? 'True':'False' }}</td>
+                            <td>{{ entity.add  ? 'True':'False' }}</td>
+                            <td>{{ entity.list  ? 'True':'False'}}</td>
+                            <td>{{ entity.order }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

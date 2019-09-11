@@ -1,0 +1,15 @@
+.center
+{
+    margin: 0 auto;
+}
+
+.hide
+{
+    display: none;
+}
+
+.space
+{
+    margin-top: 30px;
+    margin-bottom: 30px;
+}

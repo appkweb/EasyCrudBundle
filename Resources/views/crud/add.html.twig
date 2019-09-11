@@ -1,0 +1,27 @@
+{% extends "@EasyCrud/base.html.twig" %}
+
+
+{% block title %}Gestion des {{ crud_def.label }}{% endblock %}
+{% block sub_title %}{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Ajouter un {{ crud_def.label }}</h3>
+            </div>
+            <div class="card-body text-center">
+                {{ form_start(form) }}
+                <div class="row">
+                    {% for attribute in crud_def.attributes %}
+                        <div class="col-md-6 center">
+                            {{ form_row(form[attribute.name]) }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

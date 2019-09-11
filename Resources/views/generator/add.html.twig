@@ -1,0 +1,231 @@
+{% extends "@EasyCrud/base.html.twig" %}
+
+
+{% block title %}Entity generator{% endblock %}
+{% block sub_title %}Add entity{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Entity informations</h3>
+            </div>
+            <div class="card-body text-center">
+
+                {{ form_start(form,{"attr" : {"onsubmit":'return save(event,"' ~ path('appkweb_easy_crud_generator_save_json') ~'")'}}) }}
+                <div class="row">
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.entityName) }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.className) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.prefix) }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.label) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.order) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form_row(form.visible) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form_row(form.remove) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_row(form.list) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_row(form.edit) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4 center">
+                        <div class="form-group">
+                            {{ form_row(form.add) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center space">
+                    <button type="submit" class="btn btn-success">
+                        <span class="fa fa-save"></span> Save entity
+                    </button>
+                </div>
+
+                {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Attribute list</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center space">
+                    <button onclick="newAttr()" type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#myModal">
+                        <span class="fa fa-plus"></span> Add attribute
+                    </button>
+
+                </div>
+
+                <table id="datatable" class="table table-bordered table-hover text-center">
+                    <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th>Attribute name</th>
+                        <th>Label of attribute</th>
+                        <th>Attribute type</th>
+                        <th>Entity relation</th>
+                        <th>Size</th>
+                        <th>Nullable</th>
+                        <th>Visible</th>
+                        <th>Order</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for attr in attributes %}
+                        <tr>
+                            <td>
+                                <button onclick="loadEdit(this)" class="btn btn-default"><span
+                                            class="fa fa-edit"></span></button>
+                                <button onclick="remove(this)" style="margin-left: 5px" class="remove btn btn-danger">
+                                    <span class="fa fa-trash"></span></button>
+                            </td>
+                            <td>{{ attr.name }}</td>
+                            <td>{{ attr.label }}</td>
+                            <td>{{ attr.type }}</td>
+                            <td>{{ attr.entityRelation ? attr.entityRelation:'false' }}</td>
+                            <td>{{ attr.size ? attr.size: 'false' }}</td>
+                            <td>{{ attr.nullable ? 'true': 'false' }}</td>
+                            <td>{{ attr.visible ? 'true': 'false' }}</td>
+                            <td>{{ attr.order }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- The Modal -->
+    <div class="modal" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Attribute informations</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                {{ form_start(form_attr,{"attr" : {"onsubmit":'return add(event)'}}) }}
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_row(form_attr.name) }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_row(form_attr.label) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 center">
+                            <div class="form-group">
+                                {{ form_row(form_attr.type,{"attr":{"onChange":"checkType()"}}) }}
+                            </div>
+                        </div>
+                        <div id="size-container" class="col-md-6 hide">
+                            <div class="form-group">
+                                {{ form_row(form_attr.length) }}
+                            </div>
+                        </div>
+                        <div id="entity-container" class="col-md-6 hide">
+                            <div class="form-group">
+                                {{ form_row(form_attr.entity) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 center">
+                            <div class="form-group">
+                                {{ form_row(form_attr.order) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_row(form_attr.nullable) }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_row(form_attr.visible) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Save
+                    </button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><span
+                                class="fa fa-window-close"></span> Close
+                    </button>
+                </div>
+                {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('bundles/easycrud/generator/attribute.js') }}"></script>
+    <script src="{{ asset('bundles/easycrud/generator/entity.js') }}"></script>
+{% endblock %}
+
+

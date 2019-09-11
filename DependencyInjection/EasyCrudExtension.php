@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Appkweb\Bundle\UserBundle\DependencyInjection;
+namespace Appkweb\Bundle\EasyCrudBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -19,13 +19,13 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Class UserExtension
- * @package Appkweb\Bundle\UserBundle\DependencyInjection
+ * Class EasyCrudExtension
+ * @package Appkweb\Bundle\EasyCrudExtension\DependencyInjection
  */
 class EasyCrudExtension extends Extension
 {
     const DEPENDENCIES = [
-        'routes.yaml',
+        'services.yaml',
     ];
 
     /**

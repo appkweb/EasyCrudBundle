@@ -4,17 +4,9 @@
 
 ## Step 1 - Add route
 
-In your config/routes.yaml file add this lines for generator component with your custom prefix :
+In your config/routes.yaml file add this lines :
 
-    appkweb_easy_crud_generator_annotions:
+    appkweb_easy_crud:
           resource: '@EasyCrudBundle/Controller/'
           type: annotation
           prefix: /your-prefix
-        
-In the same file add crud views routing :
-
-    appkweb_easy_crud_views:
-      resource: '@EasyCrudBundle/Resources/config/'
-      type:     directory
-      prefix: /your-prefix
-            

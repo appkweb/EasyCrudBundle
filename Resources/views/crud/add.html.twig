@@ -8,18 +8,31 @@
     <div class="col-md-12 center">
         <div class="card card-primary">
             <div class="card-header">
-                <h3 class="card-title">Ajouter un {{ crud_def.label }}</h3>
+                <h3 class="card-title">Ajouter {{ crud_def.label }}</h3>
             </div>
             <div class="card-body text-center">
                 {{ form_start(form) }}
                 <div class="row">
                     {% for attribute in crud_def.attributes %}
-                        <div class="col-md-6 center">
-                            {{ form_row(form[attribute.name]) }}
-                        </div>
+                        {% if attribute.type == "TextArea" or attribute.type == "TinyMce" %}
+                            <div class="col-md-12 no-padding">
+                                <div class="col-md-9 center">
+                                    {{ form_row(form[attribute.name]) }}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-md-3 center">
+                                {{ form_row(form[attribute.name]) }}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
                 {{ form_rest(form) }}
+                <div class="text-center space">
+                    <button type="submit" class="btn btn-success">
+                        <span class="fa fa-plus"></span> Enregistrer
+                    </button>
+                </div>
                 {{ form_end(form) }}
             </div>
         </div>

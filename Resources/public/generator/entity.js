@@ -20,9 +20,17 @@
  */
 function save(e, path) {
     e.preventDefault();
+    document.getElementById('loader-bar').style.display = "block";
     var xhttp;
     var params = getEntityData();
     xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById('loader-bar').style.display = "none";
+            var data = JSON.parse(xhttp.response);
+            location.href = data.location;
+        }
+    };
     xhttp.open("POST", path, true);
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhttp.send(params);
@@ -43,6 +51,7 @@ function getEntityData() {
     var list = document.getElementById("entity_def_list").checked;
     var edit = document.getElementById("entity_def_edit").checked;
     var add = document.getElementById("entity_def_add").checked;
+    var show = document.getElementById("entity_def_show").checked;
     var attributes = [];
     var myTab = document.getElementById('datatable');
 
@@ -53,10 +62,11 @@ function getEntityData() {
             attr_label: objCells.item(2).textContent,
             attr_type: objCells.item(3).textContent,
             attr_entity_relation: objCells.item(4).textContent,
-            attr_size: objCells.item(5).textContent,
-            attr_nullable: objCells.item(6).textContent,
-            attr_visible: objCells.item(7).textContent,
-            attr_order: objCells.item(8).textContent,
+            attr_extension: objCells.item(5).textContent,
+            attr_size: objCells.item(6).textContent,
+            attr_nullable: objCells.item(7).textContent,
+            attr_visible: objCells.item(8).textContent,
+            attr_order: objCells.item(9).textContent,
         }
         attributes.push(cell);
     }
@@ -71,6 +81,7 @@ function getEntityData() {
         + '&list=' + list
         + '&edit=' + edit
         + '&add=' + add
+        + '&show=' + show
         + '&attributes=' + JSON.stringify(attributes)
 
     return strData;

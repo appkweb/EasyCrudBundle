@@ -24,6 +24,7 @@ var size;
 var can_be_null;
 var can_be_visible;
 var current_edit = false;
+var extension = [];
 
 // EXECUTED ON PAGE LOAD
 (function () {
@@ -37,20 +38,33 @@ function checkType() {
     relation_entity = true;
     attr_type = document.getElementById('attribute_def_type').value;
     switch (true) {
-        case attr_type == "string" || attr_type == "text":
+        case attr_type == "Simple input text":
             document.getElementById('entity-container').style.display = "none";
             document.getElementById('size-container').style.display = "block";
+            document.getElementById('extension-container').style.display = "none";
             relation_entity = "false";
+            extension = "false";
             break;
-        case attr_type == "integer":
+        case attr_type == "Number" || attr_type == "TexteArea" || attr_type == "TinyMce":
             document.getElementById('size-container').style.display = "none";
             document.getElementById('entity-container').style.display = "none";
+            document.getElementById('extension-container').style.display = "none";
             size = "false";
+            extension = "false";
             relation_entity = "false";
             break;
         case attr_type == "ManyToOne" || attr_type == "OneToMany" || attr_type == "OneToOne":
             size = "false";
+            extension = [];
             document.getElementById('entity-container').style.display = "block";
+            document.getElementById('extension-container').style.display = "none";
+            document.getElementById('size-container').style.display = "none";
+            break;
+        case attr_type == "Simple filepicker":
+            relation_entity = "false";
+            size = "false";
+            document.getElementById('entity-container').style.display = "none";
+            document.getElementById('extension-container').style.display = "block";
             document.getElementById('size-container').style.display = "none";
             break;
     }
@@ -68,6 +82,7 @@ function loadData() {
     order = document.getElementById('attribute_def_order').value;
     can_be_null = document.getElementById('attribute_def_nullable').checked;
     can_be_visible = document.getElementById('attribute_def_visible').checked;
+    extension = $('.selectpicker').selectpicker('val');
 }
 
 /**
@@ -84,12 +99,13 @@ function newAttr() {
 function clear() {
     document.getElementById('attribute_def_name').value = '';
     document.getElementById('attribute_def_label').value = '';
-    document.getElementById('attribute_def_type').value = 'integer';
+    document.getElementById('attribute_def_type').value = 'Number';
     document.getElementById('attribute_def_order').value = '';
     document.getElementById('attribute_def_length').value = '';
     document.getElementById('attribute_def_entity').value = '';
     document.getElementById('attribute_def_nullable').checked = false;
     document.getElementById('attribute_def_visible').checked = false;
+    $('.selectpicker').selectpicker('val', ['image/jpeg']);
     checkType();
 }
 
@@ -137,6 +153,7 @@ function updateTable() {
     if (size != "false") {
         size = document.getElementById('attribute_def_length').value;
     }
+ 
 
     var row =
         [
@@ -145,6 +162,7 @@ function updateTable() {
             "<td class='text-center'><p class='text-center space-top date' >" + attr_label + "</p></td>",
             "<td class='text-center'><p class='text-center space-top date' >" + attr_type + "</p></td>",
             "<td class='text-center'><p class='text-center space-top date' >" + relation_entity + "</p></td>",
+            "<td class='text-center'><p class='text-center space-top date' >" + extension + "</p></td>",
             "<td class='text-center'><p class='text-center space-top date' >" + size + "</p></td>",
             "<td class='text-center'><p class='text-center space-top date' >" + can_be_null + "</p></td>",
             "<td class='text-center'><p class='text-center space-top date' >" + can_be_visible + "</p></td>",
@@ -199,12 +217,15 @@ function loadEdit(btn) {
     attr_label = tr.cells[2].textContent;
     attr_type = tr.cells[3].textContent;
     relation_entity = tr.cells[4].textContent;
-    size = tr.cells[5].textContent;
-    can_be_null = tr.cells[6].textContent == 'true' || false;
-    can_be_visible = tr.cells[7].textContent == 'true' || false;
-    order = tr.cells[8].textContent;
+    extension = tr.cells[5].textContent;
+    size = tr.cells[6].textContent;
+    can_be_null = tr.cells[7].textContent == 'true' || false;
+    can_be_visible = tr.cells[8].textContent == 'true' || false;
+    order = tr.cells[9].textContent;
+    
     // load data into forms
 
+    $('.selectpicker').selectpicker('val', extension.split(','));
     document.getElementById('attribute_def_name').value = attr_name;
     document.getElementById('attribute_def_label').value = attr_label;
     document.getElementById('attribute_def_type').value = attr_type;
@@ -214,6 +235,7 @@ function loadEdit(btn) {
     } else {
         document.getElementById('attribute_def_length').value = "";
     }
+
     if (relation_entity != "false") {
         document.getElementById('attribute_def_entity').value = relation_entity;
     } else {

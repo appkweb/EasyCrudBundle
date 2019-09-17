@@ -39,6 +39,14 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
     }
 
     /**
+     * @param string $className
+     */
+    public function remove(string $className): void
+    {
+        unlink($this->root . DIRECTORY_SEPARATOR . $className . ".yaml");
+    }
+
+    /**
      * @param CrudDefinition $crudDef
      */
     public function save(CrudDefinition $crudDef): void
@@ -55,7 +63,8 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
             'list' => $crudDef->isList(),
             'order' => $crudDef->getOrder(),
             'prefix' => $crudDef->getPrefix(),
-            'add' => $crudDef->isAdd()
+            'add' => $crudDef->isAdd(),
+            'show' => $crudDef->isShow()
         ];
         if (count($crudDef->getAttributes()) > 0) {
             foreach ($crudDef->getAttributes() as $attribute) {
@@ -67,6 +76,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                     'size' => $attribute->getSize(),
                     'order' => $attribute->getOrder(),
                     'visible' => $attribute->isVisible(),
+                    'extension' => implode(', ', $attribute->getExtension()),
                     'nullable' => $attribute->isNullable()
                 ];
                 $attributes[] = $attributeArray;
@@ -99,6 +109,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                     $crudDef->setPrefix($entityData['prefix']);
                     $crudDef->setList($entityData['list']);
                     $crudDef->setAdd($entityData['add']);
+                    $crudDef->setShow($entityData['show']);
                     // Attributes list was useless in this case
 
                     $data[] = $crudDef;
@@ -116,9 +127,8 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
     {
         $fileName = ucfirst($className) . '.yaml';
         $dataFile = Yaml::parseFile($this->root . DIRECTORY_SEPARATOR . $fileName);
-        if (!$dataFile)
-        {
-            throw new \Exception("Any entity definition of EasyCrudBundle corespond to " . $className . " classname",500);
+        if (!$dataFile) {
+            throw new \Exception("Any entity definition of EasyCrudBundle corespond to " . $className . " classname", 500);
         }
         $crudDef = new CrudDefinition();
         $crudDef->setList($dataFile['list']);
@@ -131,6 +141,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
         $crudDef->setVisible($dataFile['visible']);
         $crudDef->setLabel($dataFile['label']);
         $crudDef->setAdd($dataFile['add']);
+        $crudDef->setShow($dataFile['show']);   
         $attributes = [];
         foreach ($dataFile['attributes'] as $attribute) {
             $attrDef = new AttributeDefinition();
@@ -141,6 +152,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
             $attrDef->setNullable($attribute['nullable']);
             $attrDef->setName($attribute['name']);
             $attrDef->setEntityRelation($attribute['entity_relation']);
+            $attrDef->setExtension(explode(', ',$attribute['extension']));
             $attrDef->setSize($attribute['size']);
             $crudDef->addAttributes($attrDef);
         }
@@ -158,5 +170,5 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
         }
     }
 
-    
+
 }

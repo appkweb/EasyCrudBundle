@@ -15,6 +15,8 @@ namespace Appkweb\Bundle\EasyCrudBundle\Crud;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 /**
  * Class CrudDefinition
@@ -57,6 +59,11 @@ class CrudDefinition
      * @var bool
      */
     private $visible;
+
+    /**
+     * @var bool
+     */
+    private $show;
 
     /**
      * @var bool
@@ -280,4 +287,24 @@ class CrudDefinition
         $this->add = $add;
         return $this;
     }
+
+    /**
+     * @return bool
+     */
+    public function isShow(): bool
+    {
+        return $this->show;
+    }
+
+    /**
+     * @param bool $show
+     * @return CrudDefinition
+     */
+    public function setShow(bool $show): CrudDefinition
+    {
+        $this->show = $show;
+        return $this;
+    }
+
+
 }

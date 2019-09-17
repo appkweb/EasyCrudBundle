@@ -29,6 +29,11 @@ interface PhpClassCreatorInterface
     public function save(CrudDefinition $crudDefinition): void;
 
     /**
+     * @param string $className
+     */
+    public function remove(string $className): void;
+
+    /**
      * @param string $sfType
      * @return string
      */

@@ -13,8 +13,7 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Form\Crud;
 
-use Appkweb\Bundle\EasyCrudBundle\Crud\AttributeDefinition;
-use Appkweb\Bundle\EasyCrudBundle\Crud\CrudDefinition;
+use Appkweb\Bundle\EasyCrudBundle\Utils\CrudHelper;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -33,9 +32,8 @@ class CrudMakerType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $crudDefinition = $options['data']['crud_def'];
-
         foreach ($crudDefinition->getAttributes() as $attribute) {
-            $builder->add($attribute->getName(), AttributeDefinition::getStrFormType($attribute), [
+            $builder->add($attribute->getName(), CrudHelper::getStrFormType($attribute), [
                 'required' => (!$attribute->isNullable()),
                 'attr' => ['class' => 'form-control'],
                 'label' => $attribute->getLabel()

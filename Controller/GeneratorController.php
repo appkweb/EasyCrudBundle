@@ -28,12 +28,16 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\PhpProcess;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Class GeneratorController
@@ -61,13 +65,28 @@ class GeneratorController
     private $kernel;
 
     /**
+     * @var RouterInterface
+     */
+    private $router;
+
+    /**
+     * @var FlashBagInterface
+     */
+    private $flash;
+
+    /**
      * GeneratorController constructor.
+     * @param FlashBagInterface $flash
+     * @param RouterInterface $router
+     * @param KernelInterface $kernel
      * @param YamlCrudTranslatorInterface $yamlCrudTranslator
      * @param FormFactoryInterface $formFactory
      * @param PhpClassCreatorInterface $phpClassCreator
      */
-    public function __construct(KernelInterface $kernel, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory, PhpClassCreatorInterface $phpClassCreator)
+    public function __construct(FlashBagInterface $flash, RouterInterface $router, KernelInterface $kernel, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory, PhpClassCreatorInterface $phpClassCreator)
     {
+        $this->flash = $flash;
+        $this->router = $router;
         $this->formFactory = $formFactory;
         $this->yamlCrudTranslator = $yamlCrudTranslator;
         $this->phpClassCreator = $phpClassCreator;
@@ -105,6 +124,37 @@ class GeneratorController
     }
 
     /**
+     * @Route("/remove", name="appkweb_easy_crud_generator_remove")
+     * @Template()
+     */
+    public function remove(Request $request)
+    {
+        $classname = $request->get('className');
+        $this->yamlCrudTranslator->remove($classname);
+        $this->phpClassCreator->remove($classname);
+
+        // Create Database if not exist
+        $process = new Process(['php', '../bin/console', 'doctrine:database:create']);
+        $process->run();
+
+        // Check diff between object relation and database schema
+        $process = new Process(['php', '../bin/console', 'make:migration']);
+        $process->run();
+
+        // Create getters ans setters
+        $process = new Process(['php', '../bin/console', 'make:entity', '--regenerate', 'App']);
+        $process->run();
+
+        // Run update of Database schema
+        $process = new Process(['php', '../bin/console', 'doctrine:migration:migrate']);
+        $process->run();
+
+        $this->flash->add("success", $classname . " crud removed with success !");
+
+        return new RedirectResponse($this->router->generate("appkweb_easy_crud_generator_list"));
+    }
+
+    /**
      * @Route("/save.json", name="appkweb_easy_crud_generator_save_json")
      * @Template()
      */
@@ -121,6 +171,7 @@ class GeneratorController
         $crud->setVisible($request->get('visible'));
         $crud->setOrder($request->get('order'));
         $crud->setAdd($request->get('add'));
+        $crud->setShow($request->get('show'));
         $attributes = [];
         foreach (json_decode($request->get('attributes'), true) as $attribute) {
             $attrDef = new AttributeDefinition();
@@ -128,8 +179,9 @@ class GeneratorController
             $attrDef->setLabel($attribute['attr_label']);
             $attrDef->setName($attribute['attr_name']);
             $attrDef->setEntityRelation($attribute['attr_entity_relation']);
-            $attrDef->setVisible($attribute['attr_visible']);
-            $attrDef->setNullable($attribute['attr_nullable']);
+            $attrDef->setVisible($attribute['attr_visible'] === 'true' ? true : false);
+            $attrDef->setNullable($attribute['attr_nullable'] === 'true' ? true : false);
+            $attrDef->setExtension(explode(',',$attribute['attr_extension']));
             $attrDef->setType($attribute['attr_type']);
             $attrDef->setSize($attribute['attr_size']);
             $crud->addAttributes($attrDef);
@@ -140,6 +192,7 @@ class GeneratorController
 
         // Write php object class
         $this->phpClassCreator->save($crud);
+
 
         // Create Database if not exist
         $process = new Process(['php', '../bin/console', 'doctrine:database:create']);
@@ -153,6 +206,12 @@ class GeneratorController
         $process = new Process(['php', '../bin/console', 'doctrine:migration:migrate']);
         $process->run();
 
-        return new JsonResponse([true]);
+        // Create getters ans setters
+        $process = new Process(['php', '../bin/console', 'make:entity', '--regenerate', 'App']);
+        $process->run();
+        
+        $this->flash->add("success", $crud->getClassName() . " crud generated with success !");
+
+        return new JsonResponse(["status" => true, "location" => $this->router->generate("appkweb_easy_crud_generator_list")]);
     }
 }

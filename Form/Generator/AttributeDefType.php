@@ -37,11 +37,16 @@ class AttributeDefType extends AbstractType
                 'attr' => ['class' => 'form-control'],
                 'required' => true
             ])
+            ->add('extension', ChoiceType::class, [
+                'label' => 'Extensions allowed',
+                'choices' => AttributeDefinition::FILE_EXTENSIONS,
+                'attr' => ['class' => 'selectpicker','multiple' => true],
+                'required' => true
+            ])
             ->add('entity', ChoiceType::class, [
                 'label' => 'Entity linked',
                 'choices' => [],
                 'attr' => ['class' => 'form-control']
-
             ])
             ->add('label', TextType::class, ['label' => 'Label of attribute', 'required' => false, 'attr' => ['class' => 'form-control']])
             ->add('order', NumberType::class, ['label' => 'Order of print', 'required' => true, 'attr' => ['class' => 'form-control']])

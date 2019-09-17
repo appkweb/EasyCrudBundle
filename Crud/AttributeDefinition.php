@@ -13,6 +13,7 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Crud;
 
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 /**
@@ -22,27 +23,20 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 class AttributeDefinition
 {
     const ATTRIBUTE_TYPES = [
-        'integer' => 'integer',
-        'text' => 'text',
-        'string' => 'string',
+        'Number' => 'Number',
+        'TextArea' => 'TextArea',
+        'Simple input text' => 'Simple input text',
+        'TinyMce' => 'TinyMce',
+        'Simple filepicker' => 'Simple filepicker',
         'ManyToOne' => 'ManyToOne',
         'OneToOne' => 'OneToOne',
         'OneToMany' => 'OneToMany',
     ];
 
-    /**
-     * @param CrudDefinition $crudDefinition
-     * @return string
-     */
-    public static function getStrFormType(AttributeDefinition $attributeDefinition):string
-    {
-        $type = $attributeDefinition->getType();
-        switch (true)
-        {
-            case $type == "string" || $type == "text":
-                return TextType::class;
-        }
-    }
+    const FILE_EXTENSIONS = [
+        'image/jpeg' => 'image/jpeg',
+        'image/png' => 'image/png'
+    ];
 
     /**
      * @var string
@@ -58,6 +52,11 @@ class AttributeDefinition
      * @var string
      */
     private $type;
+
+    /**
+     * @var array
+     */
+    private $extension;
 
     /**
      * @var string
@@ -143,8 +142,7 @@ class AttributeDefinition
      */
     public function getEntityRelation()
     {
-        if ($this->entity_relation === 'false' || $this->entity_relation === '')
-        {
+        if ($this->entity_relation === 'false' || $this->entity_relation === '') {
             $this->entity_relation = false;
         }
 
@@ -166,7 +164,7 @@ class AttributeDefinition
      */
     public function getSize()
     {
-        if(!$this->size) return false;
+        if (!$this->size) return false;
         return $this->size;
     }
 
@@ -233,4 +231,24 @@ class AttributeDefinition
         $this->visible = $visible;
         return $this;
     }
+
+    /**
+     * @return array
+     */
+    public function getExtension()
+    {
+        return $this->extension;
+    }
+
+    /**
+     * @param array $extension
+     * @return AttributeDefinition
+     */
+    public function setExtension(array $extension): AttributeDefinition
+    {
+        $this->extension = $extension;
+        return $this;
+    }
+
+
 }

@@ -1,0 +1,50 @@
+{% extends "@EasyCrud/base.html.twig" %}
+
+
+{% block title %}Gestion des {{ crud_def.label }}{% endblock %}
+{% block sub_title %}{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Liste {{ crud_def.label }}</h3>
+            </div>
+            <div class="card-body text-center">
+                <a class="btn btn-success space"
+                   href="{{ path('appkweb_easy_crud_add',{classname:crud_def.className|lower }) }}"><span
+                            class="fa fa-plus"></span> Nouveau</a>
+                <table id="datatable" class="table table-bordered table-hover text-center">
+                    <thead>
+                    <tr>
+                        <th>Actions</th>
+                        {% for attribute in crud_def.attributes %}
+                            <th>{{ attribute.label | capitalize }}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for entity in list %}
+                        <tr>
+                            <td>
+                                {#                                <a href="{{ path('appkweb_easy_crud_generator_add',{className:entity.className}) }}"><span#}
+                                {#                                            class="fa fa-edit"></span></a>#}
+                            </td>
+                            {% for attribute in crud_def.attributes %}
+                                <td>{% if attribute.type == "TinyMce" %}
+                                        {{ attribute(entity, attribute.name) | raw }}
+                                    {% elseif attribute.type == "Simple filepicker" %}
+{#                                        <img src="{{ dump(render(controller('Appkweb\Bundle\EasyCrudBundle\Providers\Gallery::getImgUrl', {'filename': attribute(entity, attribute.name) }))) }}">#}
+                                    {% else %}
+                                        {{ attribute(entity, attribute.name) }}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

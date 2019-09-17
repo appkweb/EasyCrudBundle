@@ -5,6 +5,16 @@
 
 {% block content %}
     <div class="col-md-12 center">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
         <div class="card card-primary">
             <div class="card-body text-center">
                 <table id="datatable" class="table table-bordered table-hover text-center">
@@ -27,6 +37,7 @@
                     {% for entity in entities %}
                         <tr>
                             <td>
+                                <a style="color: red" href="{{ path('appkweb_easy_crud_generator_remove',{className:entity.className}) }}"><span class="fa fa-trash"></span></a>
                                 <a href="{{ path('appkweb_easy_crud_generator_add',{className:entity.className}) }}"><span class="fa fa-edit"></span></a>
                             </td>
                             <td>{{ entity.entityName }}</td>

@@ -1,8 +1,8 @@
 {% for entity in entities %}
     {% if entity.list and  entity.add %}
-        <li class="nav-item has-treeview {% if page == entity.classname ~ "_add" %}menu-open{% endif %}">
+        <li class="nav-item has-treeview {% if page == entity.classname ~ "_add" or page == entity.classname ~ "_list" %}menu-open{% endif %}">
             <a href="#"
-               class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
+               class="{% if page == entity.classname ~ "_add" or page == entity.classname ~ "_list" %}active{% endif %} nav-link">
                 <i class="nav-icon far fa-circle"></i>
                 <p>
                     {{ entity.label }}
@@ -11,8 +11,8 @@
             </a>
             <ul class="nav nav-treeview">
                 <li class="nav-item">
-                    <a href="{{ path('appkweb_easy_crud_generator_list') }}"
-                       class="nav-link">
+                    <a href="{{ path('appkweb_easy_crud_list',{classname:entity.className|lower }) }}"
+                       class="{% if page == entity.classname ~ "_list" %}active{% endif %} nav-link">
                         <i class="fa fa-list nav-icon"></i>
                         <p>Liste</p>
                     </a>

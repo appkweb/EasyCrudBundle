@@ -37,6 +37,7 @@ class EntityDefType extends AbstractType
             ->add('remove', CheckboxType::class, ['label' => 'Values can be removed ?','required' => false,'attr' => ['class' => 'form-control']])
             ->add('list', CheckboxType::class, ['label' => 'Values can be listed ?','required' => false,'attr' => ['class' => 'form-control']])
             ->add('edit', CheckboxType::class, ['label' => 'Values can be edited ?','required' => false,'attr' => ['class' => 'form-control']])
-            ->add('add', CheckboxType::class, ['label' => 'Values can be added ?','required' => false,'attr' => ['class' => 'form-control']]);
+            ->add('add', CheckboxType::class, ['label' => 'Values can be added ?','required' => false,'attr' => ['class' => 'form-control']])
+            ->add('show', CheckboxType::class, ['label' => 'Values can be showed ?','required' => false,'attr' => ['class' => 'form-control']]);
     }
 }

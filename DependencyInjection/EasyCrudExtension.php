@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class EasyCrudExtension extends Extension
 {
     const DEPENDENCIES = [
-        'services.yaml',
+        'services.yaml'
     ];
 
     /**

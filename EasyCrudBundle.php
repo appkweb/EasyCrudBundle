@@ -16,9 +16,15 @@ namespace Appkweb\Bundle\EasyCrudBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
+/**
+ * Class EasyCrudBundle
+ * @package Appkweb\Bundle\EasyCrudBundle
+ */
 class EasyCrudBundle extends Bundle
 {
     public function build(ContainerBuilder $container)
     {
+        parent::build($container);
+        $container->addCompilerPass(new EasyCrudCompilerPass());
     }
 }

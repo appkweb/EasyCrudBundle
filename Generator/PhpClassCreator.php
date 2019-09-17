@@ -45,7 +45,8 @@ final class PhpClassCreator implements PhpClassCreatorInterface
         // Entity header
         $fileContent = "<?php \n\n";
         $fileContent .= "namespace App\Entity; \n\n";
-        $fileContent .= "use Doctrine\ORM\Mapping as ORM; \n\n";
+        $fileContent .= "use Doctrine\ORM\Mapping as ORM; \n";
+        $fileContent .= "use Symfony\Component\Validator\Constraints as Assert; \n\n";
         $annotations = [
             'Class ' . $crudDefinition->getClassName(),
             '',
@@ -92,16 +93,47 @@ final class PhpClassCreator implements PhpClassCreatorInterface
     public function getPhpType(string $sfType): string
     {
         switch (true) {
-            case $sfType == 'text':
+            case $sfType == 'Simple input text' || $sfType == 'TextArea' || $sfType == "TinyMce" || $sfType == "Simple filepicker" :
                 return 'string';
                 break;
-            case $sfType == 'integer':
+            case $sfType == 'Number':
                 return 'int';
                 break;
             default :
                 return $sfType;
                 break;
         }
+    }
+
+    /**
+     * @param string $sfType
+     * @return string
+     */
+    public function getOrmType(string $sfType): string
+    {
+        switch (true) {
+            case $sfType == 'Simple input text' || $sfType == 'Simple filepicker' || $sfType == "Simple filepicker" :
+                return 'string';
+                break;
+            case $sfType == 'TextArea' || $sfType == "TinyMce" :
+                return 'text';
+                break;
+            case $sfType == 'Number':
+                return 'int';
+                break;
+            default :
+                return $sfType;
+                break;
+        }
+    }
+
+    /**
+     * @param string $className
+     */
+    public function remove(string $className): void
+    {
+        unlink($this->kernel->getProjectDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Entity' . DIRECTORY_SEPARATOR . $className . '.php');
+        unlink($this->kernel->getProjectDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Repository' . DIRECTORY_SEPARATOR . $className . 'Repository.php');
     }
 
     /**
@@ -193,7 +225,7 @@ final class PhpClassCreator implements PhpClassCreatorInterface
                 if ($line == "    /* Don't write anything above this line */\n") {
                     $stop = true;
                 }
-                if ($ind >= 15 && !$stop) {
+                if ($ind >= 16 && !$stop) {
                     $content .= $line;
                 }
                 $ind++;
@@ -223,16 +255,28 @@ final class PhpClassCreator implements PhpClassCreatorInterface
         $column = '';
         switch (true) {
             case $type === 'string':
-                $column = '(name="' . $name . '", type="string", length=' . $size . ',nullable=' . $nullable . ')';
+                $column = '(type="string", length=' . $size . ',nullable=' . $nullable . ')';
                 break;
             default:
-                $column = '(name="' . $name . '", type="' . $type . '",nullable=' . $nullable . ')';
+                $column = '(type="' . $this->getOrmType($type) . '",nullable=' . $nullable . ')';
                 break;
         }
         $data = [
             '@var ' . $this->getPhpType($type),
             '@ORM\Column' . $column
         ];
+
+        if ($type === "Simple filepicker") {
+            $strExtension = '';
+            foreach ($attribute->getExtension() as $key => $item) {
+                if ($key + 1 == count($attribute->getExtension())) {
+                    $strExtension .= '"' . $item . '"';
+                } else {
+                    $strExtension .= '"' . $item . '",';
+                }
+            }
+            $data[] = '@Assert\File(mimeTypes={' . $strExtension . '})';
+        }
 
         $str = $this->getAnnotation($data, 4);
         $str .= "    private $" . $attribute->getName() . ";\n";

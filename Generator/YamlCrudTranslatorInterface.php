@@ -26,6 +26,11 @@ interface YamlCrudTranslatorInterface
     public function save(CrudDefinition $crudDef);
 
     /**
+     * @param string $className
+     */
+    public function remove(string $className):void; 
+
+    /**
      * This function return entity list created with EasyCrudBundle
      * @return array
      */

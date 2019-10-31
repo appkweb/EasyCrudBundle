@@ -1,0 +1,45 @@
+{% extends "@EasyCrud/base.html.twig" %}
+
+
+{% block title %}Consultation {{ crud_def.label }}{% endblock %}
+{% block sub_title %}{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 center">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">{{ crud_def.label }} <strong>{{ attribute(entity, crud_def.referrer) }}</strong>
+                </h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="row">
+                    {% for attribute in crud_def.attributes %}
+                        {% if attribute.type == "TextArea" or attribute.type == "TinyMce" %}
+                            <div class="col-md-12 no-padding">
+                                <div class="col-md-9 center">
+                                    {{ form_row(form[attribute.name]) }}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-md-2 center">
+                                <strong>{{ attribute.label }} : </strong> {{ attribute(entity, attribute.name) }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="text-center space">
+                    <a href="{{ path('appkweb_easy_crud_list',{classname:crud_def.className|lower }) }}"
+                       class="btn btn-default"><span class="fa fa-list"></span> Voir liste
+                    </a>
+                    <a href="{{ path('appkweb_easy_crud_add',{classname:crud_def.className,id:entity.id}) }}"
+                       style="color: white" class="btn btn-primary"><span class="fa fa-edit"></span> Modifier
+                    </a>
+                    <a  href="{{ path('appkweb_easy_crud_remove',{classname:crud_def.className,id:entity.id}) }}" style="color: white" class="btn btn-danger"><span class="fa fa-trash"></span> Supprimer
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -64,7 +64,8 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
             'order' => $crudDef->getOrder(),
             'prefix' => $crudDef->getPrefix(),
             'add' => $crudDef->isAdd(),
-            'show' => $crudDef->isShow()
+            'show' => $crudDef->isShow(),
+            'referrer' => $crudDef->getReferrer()
         ];
         if (count($crudDef->getAttributes()) > 0) {
             foreach ($crudDef->getAttributes() as $attribute) {
@@ -72,17 +73,26 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                     'name' => $attribute->getName(),
                     'type' => $attribute->getType(),
                     'label' => $attribute->getLabel(),
-                    'entity_relation' => $attribute->getEntityRelation(),
-                    'size' => $attribute->getSize(),
+                    'show' => $attribute->isShow(),
+                    'list' => $attribute->isList(),
+                    'edit' => $attribute->isEdit(),
+                    'unique' => $attribute->isUnique(),
+                    'nullable' => $attribute->isNullable(),
                     'order' => $attribute->getOrder(),
-                    'visible' => $attribute->isVisible(),
-                    'extension' => implode(', ', $attribute->getExtension()),
-                    'nullable' => $attribute->isNullable()
+                    'entity_relation' => $attribute->getEntityRelation()
                 ];
                 $attributes[] = $attributeArray;
             }
         }
         $yamlData['attributes'] = $attributes;
+        if ($attributes != false) {
+            usort($yamlData['attributes'], function ($a, $b) {
+                if (is_array($a)) {
+                    return $a['order'] <=> $b['order'];
+                }
+                return $a->getOrder() <=> $b->getOrder();
+            });
+        }
         file_put_contents($this->root . DIRECTORY_SEPARATOR . $crudDef->getClassName() . ".yaml", Yaml::dump($yamlData));
     }
 
@@ -94,7 +104,6 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
         $data = [];
         if (is_dir($this->root)) {
             $list = scandir($this->root);
-
             foreach ($list as $file) {
                 if ($file != '..' && $file != '.') {
                     $entityData = Yaml::parseFile($this->root . DIRECTORY_SEPARATOR . $file);
@@ -106,6 +115,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                     $crudDef->setOrder($entityData['order']);
                     $crudDef->setEntityName($entityData['entity_name']);
                     $crudDef->setEdit($entityData['edit']);
+                    $crudDef->setReferrer($entityData['referrer']);
                     $crudDef->setPrefix($entityData['prefix']);
                     $crudDef->setList($entityData['list']);
                     $crudDef->setAdd($entityData['add']);
@@ -116,8 +126,12 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                 }
             }
         }
+        usort($data, function ($a, $b) {
+            return $a->getOrder() <=> $b->getOrder();
+        });
         return $data;
     }
+
 
     /**
      * @param string $className
@@ -141,21 +155,26 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
         $crudDef->setVisible($dataFile['visible']);
         $crudDef->setLabel($dataFile['label']);
         $crudDef->setAdd($dataFile['add']);
-        $crudDef->setShow($dataFile['show']);   
+        $crudDef->setShow($dataFile['show']);
+        $crudDef->setReferrer($dataFile['referrer']);
         $attributes = [];
-        foreach ($dataFile['attributes'] as $attribute) {
-            $attrDef = new AttributeDefinition();
-            $attrDef->setLabel($attribute['label']);
-            $attrDef->setVisible($attribute['visible']);
-            $attrDef->setOrder($attribute['order']);
-            $attrDef->setType($attribute['type']);
-            $attrDef->setNullable($attribute['nullable']);
-            $attrDef->setName($attribute['name']);
-            $attrDef->setEntityRelation($attribute['entity_relation']);
-            $attrDef->setExtension(explode(', ',$attribute['extension']));
-            $attrDef->setSize($attribute['size']);
-            $crudDef->addAttributes($attrDef);
+        if ($dataFile['attributes']) {
+            foreach ($dataFile['attributes'] as $attribute) {
+                $attrDef = new AttributeDefinition();
+                $attrDef->setLabel($attribute['label']);
+                $attrDef->setList($attribute['list']);
+                $attrDef->setEdit($attribute['edit']);
+                $attrDef->setShow($attribute['show']);
+                $attrDef->setUnique($attribute['unique']);
+                $attrDef->setOrder($attribute['order']);
+                $attrDef->setType($attribute['type']);
+                $attrDef->setNullable($attribute['nullable']);
+                $attrDef->setName($attribute['name']);
+                $attrDef->setEntityRelation($attribute['entity_relation']);
+                $crudDef->addAttributes($attrDef);
+            }
         }
+
         return $crudDef;
     }
 

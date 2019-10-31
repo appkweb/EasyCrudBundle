@@ -27,15 +27,11 @@ class AttributeDefinition
         'TextArea' => 'TextArea',
         'Simple input text' => 'Simple input text',
         'TinyMce' => 'TinyMce',
-        'Simple filepicker' => 'Simple filepicker',
-        'ManyToOne' => 'ManyToOne',
-        'OneToOne' => 'OneToOne',
-        'OneToMany' => 'OneToMany',
-    ];
-
-    const FILE_EXTENSIONS = [
-        'image/jpeg' => 'image/jpeg',
-        'image/png' => 'image/png'
+        'Simple image picker' => 'Simple image picker',
+        'Date picker' => 'Date picker',
+        'Simple select' => 'Simple select',
+        'Add list' => 'Add list',
+//        'Multiple select' => 'Multiple select'
     ];
 
     /**
@@ -54,19 +50,9 @@ class AttributeDefinition
     private $type;
 
     /**
-     * @var array
-     */
-    private $extension;
-
-    /**
      * @var string
      */
     private $entity_relation;
-
-    /**
-     * @var string
-     */
-    private $size;
 
     /**
      * @var bool
@@ -81,7 +67,22 @@ class AttributeDefinition
     /**
      * @var bool
      */
-    private $visible;
+    private $list;
+
+    /**
+     * @var bool
+     */
+    private $show;
+
+    /**
+     * @var bool
+     */
+    private $edit;
+
+    /**
+     * @var bool
+     */
+    private $unique;
 
     /**
      * @return string
@@ -160,25 +161,6 @@ class AttributeDefinition
     }
 
     /**
-     * @return string
-     */
-    public function getSize()
-    {
-        if (!$this->size) return false;
-        return $this->size;
-    }
-
-    /**
-     * @param string $size
-     * @return AttributeDefinition
-     */
-    public function setSize(string $size): AttributeDefinition
-    {
-        $this->size = $size;
-        return $this;
-    }
-
-    /**
      * @return bool
      */
     public function isNullable()
@@ -217,38 +199,72 @@ class AttributeDefinition
     /**
      * @return bool
      */
-    public function isVisible(): bool
+    public function isList(): bool
     {
-        return $this->visible;
+        return $this->list;
     }
 
     /**
-     * @param bool $visible
+     * @param bool $list
      * @return AttributeDefinition
      */
-    public function setVisible(bool $visible): AttributeDefinition
+    public function setList(bool $list): AttributeDefinition
     {
-        $this->visible = $visible;
+        $this->list = $list;
         return $this;
     }
 
     /**
-     * @return array
+     * @return bool
      */
-    public function getExtension()
+    public function isShow(): bool
     {
-        return $this->extension;
+        return $this->show;
     }
 
     /**
-     * @param array $extension
+     * @param bool $show
      * @return AttributeDefinition
      */
-    public function setExtension(array $extension): AttributeDefinition
+    public function setShow(bool $show): AttributeDefinition
     {
-        $this->extension = $extension;
+        $this->show = $show;
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function isEdit(): bool
+    {
+        return $this->edit;
+    }
 
+    /**
+     * @param bool $edit
+     * @return AttributeDefinition
+     */
+    public function setEdit(bool $edit): AttributeDefinition
+    {
+        $this->edit = $edit;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUnique(): bool
+    {
+        return $this->unique;
+    }
+
+    /**
+     * @param bool $unique
+     * @return AttributeDefinition
+     */
+    public function setUnique(bool $unique): AttributeDefinition
+    {
+        $this->unique = $unique;
+        return $this;
+    }
 }

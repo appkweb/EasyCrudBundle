@@ -17,14 +17,18 @@ use App\Entity\Gallery;
 use http\Env\Response;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Interface GalleryInterface
+ * @package Appkweb\Bundle\EasyCrudBundle\Providers
+ */
 interface GalleryInterface
 {
     /**
-     * @param UploadedFile $file
+     * @param string blob/ UploadedFile $file
      * @param bool $dirName
      * @return string
      */
-    public function upload(UploadedFile $file, $dirName = false): string;
+    public function upload($file, $dirName = false): string;
 
     /**
      * @param $filename
@@ -40,9 +44,11 @@ interface GalleryInterface
     public function getImgUrl(string $filename, $dirName = false);
 
     /**
+     * @param $extension
      * @return string
+     * @throws \Exception
      */
-    public function generateUniqueFileName(): string;
+    public function generateUniqueFileName($extension): string;
 
     /**
      * /!\ Don't forgot to chmod 777 public dir of your symfony project on prod

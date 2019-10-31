@@ -51,6 +51,12 @@ class CrudDefinition
     private $label;
 
     /**
+     * @var string
+     */
+    private $referrer;
+
+
+    /**
      * @var int
      */
     private $order;
@@ -306,5 +312,21 @@ class CrudDefinition
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getReferrer()
+    {
+        return $this->referrer;
+    }
 
+    /**
+     * @param string $referrer
+     * @return CrudDefinition
+     */
+    public function setReferrer(string $referrer): CrudDefinition
+    {
+        $this->referrer = $referrer;
+        return $this;
+    }
 }

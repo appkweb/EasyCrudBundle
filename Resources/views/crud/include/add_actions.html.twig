@@ -1,0 +1,18 @@
+<div class="text-center space">
+    <a href="{{ path('appkweb_easy_crud_list',{classname:crud_def.className|lower }) }}"
+       class="btn btn-default"><span class="fa fa-list"></span> Voir liste
+    </a>
+    {% if id %}
+        <a href="{{ path('appkweb_easy_crud_show',{classname:crud_def.className,id:id}) }}"
+           style="color: white" class="btn btn-primary"><span class="fa fa-eye"></span>
+            Consulter
+        </a>
+        <a href="{{ path('appkweb_easy_crud_remove',{classname:crud_def.className,id:id}) }}"
+           style="color: white" class="btn btn-danger"><span class="fa fa-trash"></span>
+            Supprimer
+        </a>
+    {% endif %}
+    <button form="{{ crud_def.classname ~ "-form"}}" type="submit" class="btn btn-success">
+        <span class="fa fa-plus"></span> Enregistrer
+    </button>
+</div>

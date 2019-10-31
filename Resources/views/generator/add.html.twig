@@ -9,7 +9,8 @@
         <div style="display: none" id="loader-bar">
             <h4 class="text-center"><b><i>Wait please ...</i></b></h4>
             <div class="progress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                     aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
             </div>
         </div>
         <div class="card card-primary space">
@@ -17,8 +18,11 @@
             <div class="card-header">
                 <h3 class="card-title">Entity informations</h3>
             </div>
-            <div class="card-body text-center">
 
+            {% if classname %}
+                <div id="old-classname" style="display: none">{{ classname }}</div>
+            {% endif %}
+            <div class="card-body text-center">
                 {{ form_start(form,{"attr" : {"onsubmit":'return save(event,"' ~ path('appkweb_easy_crud_generator_save_json') ~'")'}}) }}
                 <div class="row">
                     <div class="col-md-3 center">
@@ -50,6 +54,11 @@
                     <div class="col-md-3 center">
                         <div class="form-group">
                             {{ form_row(form.order) }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 center">
+                        <div class="form-group">
+                            {{ form_row(form.referrer) }}
                         </div>
                     </div>
                 </div>
@@ -123,11 +132,11 @@
                         <th>Attribute name</th>
                         <th>Label of attribute</th>
                         <th>Attribute type</th>
-                        <th>Entity relation</th>
-                        <th>File extensions</th>
-                        <th>Size</th>
+                        <th>List</th>
+                        <th>Edit</th>
+                        <th>Show</th>
                         <th>Nullable</th>
-                        <th>Visible</th>
+                        <th>Unique</th>
                         <th>Order</th>
                     </tr>
                     </thead>
@@ -142,12 +151,12 @@
                             </td>
                             <td>{{ attr.name }}</td>
                             <td>{{ attr.label }}</td>
-                            <td>{{ attr.type }}</td>
-                            <td>{{ attr.entityRelation ? attr.entityRelation:'false' }}</td>
-                            <td>{{ attr.extension ? attr.extension | join(',') : 'false'  }}</td>
-                            <td>{{ attr.size ? attr.size: 'false' }}</td>
+                            <td><p class="text-center space-top">{{ attr.type }}</p>{% if attr.entityRelation %}<div class="relation">Entity linked : {{ attr.entityRelation }}</div>{% endif %}</td>
+                            <td>{{ attr.list ? 'true' : 'false' }}</td>
+                            <td>{{ attr.edit ? 'true' : 'false' }}</td>
+                            <td>{{ attr.show ? 'true' : 'false' }}</td>
                             <td>{{ attr.nullable ? 'true': 'false' }}</td>
-                            <td>{{ attr.visible ? 'true': 'false' }}</td>
+                            <td>{{ attr.unique ? 'true': 'false' }}</td>
                             <td>{{ attr.order }}</td>
                         </tr>
                     {% endfor %}
@@ -189,24 +198,12 @@
                                 {{ form_row(form_attr.type,{"attr":{"onChange":"checkType()"}}) }}
                             </div>
                         </div>
-                        <div id="size-container" class="col-md-6 hide">
-                            <div class="form-group">
-                                {{ form_row(form_attr.length) }}
-                            </div>
-                        </div>
-
-                        <div id="extension-container" class="col-md-6 hide">
-                            <div class="form-group">
-                                {{ form_row(form_attr.extension) }}
-                            </div>
-                        </div>
                         <div id="entity-container" class="col-md-6 hide">
                             <div class="form-group">
                                 {{ form_row(form_attr.entity) }}
                             </div>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-6 center">
                             <div class="form-group">
@@ -216,14 +213,31 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3 center">
+                            <div class="form-group">
+                                {{ form_row(form_attr.show) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 center">
+                            <div class="form-group">
+                                {{ form_row(form_attr.edit) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 center">
+                            <div class="form-group">
+                                {{ form_row(form_attr.list) }}
+                            </div>
+                        </div>
+                        <div class="col-md-3 center">
                             <div class="form-group">
                                 {{ form_row(form_attr.nullable) }}
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3 center">
                             <div class="form-group">
-                                {{ form_row(form_attr.visible) }}
+                                {{ form_row(form_attr.unique) }}
                             </div>
                         </div>
                     </div>

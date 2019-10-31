@@ -14,14 +14,14 @@
 namespace Appkweb\Bundle\EasyCrudBundle\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class TinymceType
+ * Class EasyCrudFileType
  * @package Appkweb\Bundle\EasyCrudBundle\Type
  */
-class TinymceType extends AbstractType
+class EasyCrudFileType extends AbstractType
 {
     /**
      * @param OptionsResolver $resolver
@@ -32,12 +32,11 @@ class TinymceType extends AbstractType
     }
 
     /**
-     * Override TextAreaType
      * @return string|null
      */
     public function getParent()
     {
-        return TextareaType::class;
+        return FileType::class;
     }
 
     /**
@@ -45,6 +44,6 @@ class TinymceType extends AbstractType
      */
     public function getBlockPrefix()
     {
-        return 'tinymce';
+        return 'easy_crud_file_type';
     }
 }

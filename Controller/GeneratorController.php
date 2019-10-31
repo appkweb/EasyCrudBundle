@@ -20,6 +20,8 @@ use Appkweb\Bundle\EasyCrudBundle\Form\Generator\EntityDefType;
 use Appkweb\Bundle\EasyCrudBundle\Generator\PhpClassCreatorInterface;
 use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslator;
 use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -75,6 +77,11 @@ class GeneratorController
     private $flash;
 
     /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    /**
      * GeneratorController constructor.
      * @param FlashBagInterface $flash
      * @param RouterInterface $router
@@ -83,8 +90,9 @@ class GeneratorController
      * @param FormFactoryInterface $formFactory
      * @param PhpClassCreatorInterface $phpClassCreator
      */
-    public function __construct(FlashBagInterface $flash, RouterInterface $router, KernelInterface $kernel, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory, PhpClassCreatorInterface $phpClassCreator)
+    public function __construct(EntityManagerInterface $em, FlashBagInterface $flash, RouterInterface $router, KernelInterface $kernel, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory, PhpClassCreatorInterface $phpClassCreator)
     {
+        $this->em = $em;
         $this->flash = $flash;
         $this->router = $router;
         $this->formFactory = $formFactory;
@@ -101,6 +109,7 @@ class GeneratorController
     {
         $className = $request->get('className', false);
         $crudDef = [];
+        $refferers = ['Id' => 'Id'];
         $attr = [];
         if ($className) {
             $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($className);
@@ -109,7 +118,7 @@ class GeneratorController
         $form = $this->formFactory->create(EntityDefType::class, $crudDef);
         $formAttr = $this->formFactory->create(AttributeDefType::class);
         $page = $request->get('page', 'generator_add');
-        return ['page' => $page, 'form' => $form->createView(), 'form_attr' => $formAttr->createView(), 'attributes' => $attr];
+        return ['page' => $page, 'form' => $form->createView(), 'form_attr' => $formAttr->createView(), 'attributes' => $attr, 'classname' => $className];
     }
 
     /**
@@ -130,24 +139,30 @@ class GeneratorController
     public function remove(Request $request)
     {
         $classname = $request->get('className');
+        $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
+        $entityName = $crudDef->getEntityName();
+        $this->phpClassCreator->removeRelations($classname);
         $this->yamlCrudTranslator->remove($classname);
         $this->phpClassCreator->remove($classname);
+
 
         // Create Database if not exist
         $process = new Process(['php', '../bin/console', 'doctrine:database:create']);
         $process->run();
 
         // Check diff between object relation and database schema
-        $process = new Process(['php', '../bin/console', 'make:migration']);
+        $process = new Process(['php', '../bin/console', 'doctrine:schema:update', '--force']);
         $process->run();
 
         // Create getters ans setters
         $process = new Process(['php', '../bin/console', 'make:entity', '--regenerate', 'App']);
         $process->run();
 
-        // Run update of Database schema
-        $process = new Process(['php', '../bin/console', 'doctrine:migration:migrate']);
-        $process->run();
+        $sql = 'DROP TABLE ' . $entityName . ';';
+        $connection = $this->em->getConnection();
+        $stmt = $connection->prepare($sql);
+        $stmt->execute();
+        $stmt->closeCursor();
 
         $this->flash->add("success", $classname . " crud removed with success !");
 
@@ -161,17 +176,19 @@ class GeneratorController
     public function save(Request $request)
     {
         $crud = new CrudDefinition();
+        $oldClassName = $request->get('oldClassName', false);
         $crud->setClassName(ucfirst($request->get('className')));
-        $crud->setEdit($request->get('edit'));
+        $crud->setEdit($request->get('edit') === 'true' ? true : false);
         $crud->setLabel(ucfirst($request->get('label')));
         $crud->setEntityName(strtolower($request->get('entityName')));
-        $crud->setList($request->get('list'));
+        $crud->setList($request->get('list')=== 'true' ? true : false);
         $crud->setPrefix($request->get('prefix'));
-        $crud->setRemove($request->get('remove'));
-        $crud->setVisible($request->get('visible'));
+        $crud->setRemove($request->get('remove')=== 'true' ? true : false);
+        $crud->setVisible($request->get('visible') === 'true' ? true : false);
         $crud->setOrder($request->get('order'));
-        $crud->setAdd($request->get('add'));
-        $crud->setShow($request->get('show'));
+        $crud->setAdd($request->get('add') === 'true' ? true : false);
+        $crud->setReferrer($request->get('referrer'));
+        $crud->setShow($request->get('show')=== 'true' ? true : false);
         $attributes = [];
         foreach (json_decode($request->get('attributes'), true) as $attribute) {
             $attrDef = new AttributeDefinition();
@@ -179,11 +196,12 @@ class GeneratorController
             $attrDef->setLabel($attribute['attr_label']);
             $attrDef->setName($attribute['attr_name']);
             $attrDef->setEntityRelation($attribute['attr_entity_relation']);
-            $attrDef->setVisible($attribute['attr_visible'] === 'true' ? true : false);
+            $attrDef->setShow($attribute['attr_show'] === 'true' ? true : false);
+            $attrDef->setList($attribute['attr_list'] === 'true' ? true : false);
+            $attrDef->setEdit($attribute['attr_edit'] === 'true' ? true : false);
+            $attrDef->setUnique($attribute['attr_unique'] === 'true' ? true : false);
             $attrDef->setNullable($attribute['attr_nullable'] === 'true' ? true : false);
-            $attrDef->setExtension(explode(',',$attribute['attr_extension']));
             $attrDef->setType($attribute['attr_type']);
-            $attrDef->setSize($attribute['attr_size']);
             $crud->addAttributes($attrDef);
         }
 
@@ -191,7 +209,7 @@ class GeneratorController
         $this->yamlCrudTranslator->save($crud);
 
         // Write php object class
-        $this->phpClassCreator->save($crud);
+        $this->phpClassCreator->save($crud, $oldClassName);
 
 
         // Create Database if not exist
@@ -199,17 +217,13 @@ class GeneratorController
         $process->run();
 
         // Check diff between object relation and database schema
-        $process = new Process(['php', '../bin/console', 'make:migration']);
-        $process->run();
-
-        // Run update of Database schema
-        $process = new Process(['php', '../bin/console', 'doctrine:migration:migrate']);
+        $process = new Process(['php', '../bin/console', 'doctrine:schema:update', '--force']);
         $process->run();
 
         // Create getters ans setters
         $process = new Process(['php', '../bin/console', 'make:entity', '--regenerate', 'App']);
         $process->run();
-        
+
         $this->flash->add("success", $crud->getClassName() . " crud generated with success !");
 
         return new JsonResponse(["status" => true, "location" => $this->router->generate("appkweb_easy_crud_generator_list")]);

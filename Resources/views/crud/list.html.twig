@@ -11,6 +11,16 @@
                 <h3 class="card-title">Liste {{ crud_def.label }}</h3>
             </div>
             <div class="card-body text-center">
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                {% endfor %}
                 <a class="btn btn-success space"
                    href="{{ path('appkweb_easy_crud_add',{classname:crud_def.className|lower }) }}"><span
                             class="fa fa-plus"></span> Nouveau</a>
@@ -27,14 +37,22 @@
                     {% for entity in list %}
                         <tr>
                             <td>
-                                {#                                <a href="{{ path('appkweb_easy_crud_generator_add',{className:entity.className}) }}"><span#}
-                                {#                                            class="fa fa-edit"></span></a>#}
+                                <a class="btn btn-default" style="color: black" href="{{ path('appkweb_easy_crud_show',{classname:crud_def.className,id:entity.id}) }}"><span
+                                            class="fa fa-eye"></span></a>
+                                <a class="btn btn-default" style="color:#007bff;" href="{{ path('appkweb_easy_crud_add',{classname:crud_def.className,id:entity.id}) }}"><span
+                                            class="fa fa-edit"></span></a>
+                                <a class="btn btn-default" style="color: red" href="{{ path('appkweb_easy_crud_remove',{classname:crud_def.className,id:entity.id}) }}"><span
+                                            class="fa fa-trash"></span></a>
                             </td>
                             {% for attribute in crud_def.attributes %}
-                                <td>{% if attribute.type == "TinyMce" %}
+                                <td>
+                                    {% if attribute.type == "TinyMce" %}
                                         {{ attribute(entity, attribute.name) | raw }}
-                                    {% elseif attribute.type == "Simple filepicker" %}
-{#                                        <img src="{{ dump(render(controller('Appkweb\Bundle\EasyCrudBundle\Providers\Gallery::getImgUrl', {'filename': attribute(entity, attribute.name) }))) }}">#}
+                                    {% elseif attribute.type == "Simple image picker" %}
+                                        <img class="img-fluid" style="width: 300px"
+                                             src="{{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getImgUrl', {'filename': attribute(entity, attribute.name) })) }}">
+                                    {% elseif attribute.type == "Date picker" %}
+                                        {{ attribute(entity, attribute.name) | date('d/m/Y') }}
                                     {% else %}
                                         {{ attribute(entity, attribute.name) }}
                                     {% endif %}

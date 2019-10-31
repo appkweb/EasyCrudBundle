@@ -14,9 +14,11 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Providers;
 
-use http\Env\Response;
+
+use App\Providers\Attachment;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
@@ -26,6 +28,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class Gallery implements GalleryInterface
 {
     private $kernel;
+    private $ind = 0;
 
     public function __construct(KernelInterface $kernel)
     {
@@ -33,31 +36,38 @@ class Gallery implements GalleryInterface
     }
 
     /**
-     * @param UploadedFile $file
+     * @param string blob/ UploadedFile $file
      * @param bool $dirName
      * @return string
      */
-    public function upload(UploadedFile $file, $dirName = false): string
+    public function upload($file, $dirName = false): string
     {
-        /* @var File $file */
-        $fileName = $this->generateUniqueFileName() . '.' . $file->guessExtension();
+
         if (!$dirName) $dirName = 'default_media';
         $absolutePathDirectory = $this->kernel->getProjectDir() . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . $dirName;
         $this->createDirIfNotExist($absolutePathDirectory);
+        if ($file instanceof UploadedFile) {
 
-        if ($file->getSize() > 800000) {
-            $percent = 0.1;
-            list($width, $height) = getimagesize($file->getRealPath());
-            $new_width = $width * $percent;
-            $new_height = $height * $percent;
-            $image_p = imagecreatetruecolor($new_width, $new_height);
-            $image = imagecreatefromjpeg($file->getRealPath());
-            imagecopyresampled($image_p, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
-            imagejpeg($image_p, $absolutePathDirectory . DIRECTORY_SEPARATOR . $fileName, 100);
+            $filename = $this->generateUniqueFileName($file->guessExtension());
+            if ($file->getSize() > 800000) {
+                $percent = 0.1;
+                list($width, $height) = getimagesize($file->getRealPath());
+                $new_width = $width * $percent;
+                $new_height = $height * $percent;
+                $image_p = imagecreatetruecolor($new_width, $new_height);
+                $image = imagecreatefromjpeg($file->getRealPath());
+                imagecopyresampled($image_p, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+                imagejpeg($image_p, $absolutePathDirectory . DIRECTORY_SEPARATOR . $filename, 100);
+            } else {
+                $file->move($absolutePathDirectory, $filename);
+            }
         } else {
-            $file->move($absolutePathDirectory, $fileName);
+            $img = $this->getImgByBlob($file);
+            $extension = $this->getImgExtensionByBlob($file);
+            $filename = $this->generateUniqueFileName($extension);
+            imagejpeg($img, $absolutePathDirectory . DIRECTORY_SEPARATOR . $filename, 100);
         }
-        return $fileName;
+        return $filename;
     }
 
     /**
@@ -67,16 +77,16 @@ class Gallery implements GalleryInterface
      */
     public function getImgUrl(string $filename, $dirName = false)
     {
-        if ($gallery) {
+        if ($filename) {
             if (!$dirName) $dirName = 'default_media';
             $absolutePathDirectory = DIRECTORY_SEPARATOR . $dirName . DIRECTORY_SEPARATOR;
             if ($filename) {
-                return new Response($absolutePathDirectory . $filename) ;
+                return new Response($absolutePathDirectory . $filename);
             } else {
-                return new Response(false);
+                return new Response('');
             }
         } else {
-            return new Response(false);
+            return new Response('');
         }
     }
 
@@ -92,11 +102,15 @@ class Gallery implements GalleryInterface
     }
 
     /**
+     * @param $extension
      * @return string
+     * @throws \Exception
      */
-    public function generateUniqueFileName(): string
+    public function generateUniqueFileName($extension): string
     {
-        return md5(uniqid());
+        $this->ind ++;
+        $date = new \DateTime('now');
+        return $date->format('d-m-Y-hh-ii-ss-') . $this->ind . '.' . $extension;
     }
 
     /**
@@ -110,5 +124,29 @@ class Gallery implements GalleryInterface
         }
     }
 
+    /**
+     * @param $blob
+     * @return false|resource
+     */
+    public function getImgByBlob(string $blob)
+    {
+        $blobArray = explode(',', base64_decode($blob));
+        return imagecreatefromstring(base64_decode($blobArray[1]));
+    }
 
+    /**
+     * This function return extension of str blob file
+     * @param $blob
+     * @return mixed
+     */
+    public function getImgExtensionByBlob(string $blob)
+    {
+        $blobArray = explode(';', base64_decode($blob));
+        $blobArray = explode('/', $blobArray[0]);
+        $extension = $blobArray[1];
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+        return $extension;
+    }
 }

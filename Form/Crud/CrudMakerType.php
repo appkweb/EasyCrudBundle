@@ -11,13 +11,15 @@
  * file that was distributed with this source code.
  */
 
+
 namespace Appkweb\Bundle\EasyCrudBundle\Form\Crud;
 
+use Appkweb\Bundle\EasyCrudBundle\Crud\AttributeDefinition;
 use Appkweb\Bundle\EasyCrudBundle\Utils\CrudHelper;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
-
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Class CrudMakerType
@@ -33,11 +35,30 @@ class CrudMakerType extends AbstractType
     {
         $crudDefinition = $options['data']['crud_def'];
         foreach ($crudDefinition->getAttributes() as $attribute) {
-            $builder->add($attribute->getName(), CrudHelper::getStrFormType($attribute), [
-                'required' => (!$attribute->isNullable()),
-                'attr' => ['class' => 'form-control'],
-                'label' => $attribute->getLabel()
-            ]);
+            /* @var AttributeDefinition $attribute */
+            $args = [
+                'required' => false,
+                'label' => ucfirst($attribute->getLabel()),
+                'data_class' => null,
+                'attr' => ['class' => 'form-control','data-type' => $attribute->getType()]
+            ];
+            switch ($attribute->getType()) {
+                case 'Simple select':
+                    $args['class'] = 'App\Entity\\' . $attribute->getEntityRelation();
+                    break;
+                case 'Simple image picker':
+                    $args['attr']['class'] = "file-input";
+                    break;
+                case 'TinyMce':
+                    $args['attr']['class'] = "tinymce";
+                    break;
+                case "Date picker":
+                    $args['attr']['class'] = "datepicker form-control";
+                    break;
+            }
+            if ($attribute->getType() != "Add list") {
+                $builder->add($attribute->getName(), CrudHelper::getStrFormType($attribute), $args);
+            }
         }
     }
 }

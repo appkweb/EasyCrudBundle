@@ -7,6 +7,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {{ include('@EasyCrud/include/base_css.html.twig') }}
     {% endblock %}
+
+    {% block javascripts %}
+        {{ include('@EasyCrud/include/base_js.html.twig') }}
+        <script>
+            $(function () {
+                $('#datatable').DataTable({
+                    "paging": true,
+                    "lengthChange": false,
+                    "searching": false,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "language":
+                        {
+                            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                        }
+                });
+            });
+        </script>
+
+    {% endblock %}
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 {% block body %}
@@ -39,25 +60,48 @@
         </div>
     </div>
 {% endblock %}
-{% block javascripts %}
-    {{ include('@EasyCrud/include/base_js.html.twig') }}
-    <script>
-        $(function () {
-            $('#datatable').DataTable({
-                "paging": true,
-                "lengthChange": false,
-                "searching": false,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "language":
-                    {
-                        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-                    }
-            });
-        });
-    </script>
 
-{% endblock %}
+<script type="text/javascript">
+    (function () {
+        $('.datepicker').daterangepicker({
+            singleDatePicker: true,
+            "locale": {
+                "format": "DD/MM/YYYY",
+                "separator": " - ",
+                "applyLabel": "Valider",
+                "cancelLabel": "Annuler",
+                "fromLabel": "De",
+                "toLabel": "à",
+                "customRangeLabel": "Custom",
+                "daysOfWeek": [
+                    "Dim",
+                    "Lun",
+                    "Mar",
+                    "Mer",
+                    "Jeu",
+                    "Ven",
+                    "Sam"
+                ],
+                "monthNames": [
+                    "Janvier",
+                    "Février",
+                    "Mars",
+                    "Avril",
+                    "Mai",
+                    "Juin",
+                    "Juillet",
+                    "Août",
+                    "Septembre",
+                    "Octobre",
+                    "Novembre",
+                    "Décembre"
+                ],
+                "firstDay": 1
+            }
+        })
+    })();
+</script>
+
+
 </body>
 </html>

@@ -29,19 +29,59 @@ final class PhpClassCreator implements PhpClassCreatorInterface
      */
     private $kernel;
 
-    public function __construct(KernelInterface $kernel)
+    /**
+     * @var string
+     */
+    private $relatedAttrName;
+
+    /**
+     * @var YamlCrudTranslatorInterface
+     */
+    private $yamlCrudTranslator;
+
+    public function __construct(KernelInterface $kernel, YamlCrudTranslatorInterface $yamlCrudTranslator)
     {
         $this->kernel = $kernel;
+        $this->yamlCrudTranslator = $yamlCrudTranslator;
     }
+
+    /**
+     * @param string $classname
+     */
+    public function removeRelations(string $classname): void
+    {
+        $crudDefinition = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
+        $attributes = $crudDefinition->getAttributes();
+        if (count($attributes) > 0)
+            foreach ($attributes as $attribute) {
+                $entityRelation = $attribute->getEntityRelation();
+                if ($entityRelation != false) {
+                    $crud = $this->yamlCrudTranslator->getCrudDefByClassName($entityRelation);
+                    foreach ($crud->getAttributes() as $key => $item) {
+                        unset($crud->getAttributes()[$key]);
+                    }
+                    $this->yamlCrudTranslator->save($crud);
+                    $this->save($crud);
+                }
+            }
+    }
+
 
     /**
      * Create php Class by CrudDefinition transmit in param
      * @param CrudDefinition $crudDefinition
      */
-    public function save(CrudDefinition $crudDefinition): void
+    public function save(CrudDefinition $crudDefinition, $oldClassName = "false"): void
     {
         $pathFile = $this->kernel->getProjectDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Entity' . DIRECTORY_SEPARATOR . $crudDefinition->getClassName() . '.php';
         $oldContent = $this->getOldCustomMethods($pathFile);
+        if ($oldClassName != "false" && $oldClassName != $crudDefinition->getClassName()) {
+            $this->removeRelations($oldClassName);
+            $this->yamlCrudTranslator->remove($oldClassName);
+            $this->remove($oldClassName);
+        }
+
+
         // Entity header
         $fileContent = "<?php \n\n";
         $fileContent .= "namespace App\Entity; \n\n";
@@ -61,11 +101,15 @@ final class PhpClassCreator implements PhpClassCreatorInterface
         }
         $fileContent .= '    /* Don\'t write anything above this line */' . "\n\n";
 
+        $getterOfToString = '(string)$this->get' . ucfirst($crudDefinition->getReferrer()) . '();';
+        $fileContent .= "    public function __toString()\n    {\n        return " . $getterOfToString . "\n    }\n\n";
+
+
         // Id of entity
         $annotations = [
             "@var int",
             "",
-            '@ORM\\Column(name="id",type="integer")',
+            '@ORM\\Column(type="integer")',
             '@ORM\\Id',
             '@ORM\\GeneratedValue(strategy="AUTO")'
         ];
@@ -74,7 +118,7 @@ final class PhpClassCreator implements PhpClassCreatorInterface
 
         // Attributes of entity
         foreach ($crudDefinition->getAttributes() as $attribute) {
-            $fileContent .= $this->getAttributeToStr($attribute);
+            $fileContent .= $this->getAttributeToStr($crudDefinition, $attribute);
         }
         $fileContent .= "\n}";
         if (file_exists($pathFile)) {
@@ -93,12 +137,14 @@ final class PhpClassCreator implements PhpClassCreatorInterface
     public function getPhpType(string $sfType): string
     {
         switch (true) {
-            case $sfType == 'Simple input text' || $sfType == 'TextArea' || $sfType == "TinyMce" || $sfType == "Simple filepicker" :
+            case $sfType == 'Simple input text' || $sfType == 'TextArea' || $sfType == "TinyMce" || $sfType == "Simple image picker" :
                 return 'string';
                 break;
             case $sfType == 'Number':
                 return 'int';
                 break;
+            case $sfType == "Date picker":
+                return '\DateTime';
             default :
                 return $sfType;
                 break;
@@ -112,17 +158,20 @@ final class PhpClassCreator implements PhpClassCreatorInterface
     public function getOrmType(string $sfType): string
     {
         switch (true) {
-            case $sfType == 'Simple input text' || $sfType == 'Simple filepicker' || $sfType == "Simple filepicker" :
+            case $sfType == 'Simple input text' || $sfType == 'Simple image picker':
                 return 'string';
                 break;
             case $sfType == 'TextArea' || $sfType == "TinyMce" :
                 return 'text';
                 break;
             case $sfType == 'Number':
-                return 'int';
+                return 'integer';
+                break;
+            case $sfType = 'Date picker':
+                return 'datetime';
                 break;
             default :
-                return $sfType;
+                throw new \Exception("Type does not exist", 500);
                 break;
         }
     }
@@ -218,15 +267,18 @@ final class PhpClassCreator implements PhpClassCreatorInterface
         $content = '';
         $ind = 0;
         $stop = false;
-
+        $start = false;
         if (file_exists($path)) {
             $file = fopen($path, 'r');
             while (($line = fgets($file)) !== false && !$stop) {
                 if ($line == "    /* Don't write anything above this line */\n") {
                     $stop = true;
                 }
-                if ($ind >= 16 && !$stop) {
-                    $content .= $line;
+                if ($line == "{\n" || $start) {
+                    if ($start && !$stop) {
+                        $content .= $line;
+                    }
+                    $start = true;
                 }
                 $ind++;
             }
@@ -241,46 +293,89 @@ final class PhpClassCreator implements PhpClassCreatorInterface
      * @param AttributeDefinition $attribute
      * @return string
      */
-    protected function getAttributeToStr(AttributeDefinition $attribute): string
+    protected function getAttributeToStr(CrudDefinition $crudDefinition, AttributeDefinition $attribute): string
     {
-        $name = $this->replaceUpperCaseByUnderscore($attribute->getName());
         $type = $attribute->getType();
-        $size = $attribute->getSize();
         $nullable = $attribute->isNullable();
-        if ($nullable) {
-            $nullable = "true";
-        } else {
-            $nullable = "false";
-        }
+        $unique = $attribute->isUnique();
+        $nullable = $nullable ? "true" : "false";
+        $unique = $unique ? "true" : "false";
         $column = '';
-        switch (true) {
-            case $type === 'string':
-                $column = '(type="string", length=' . $size . ',nullable=' . $nullable . ')';
-                break;
-            default:
-                $column = '(type="' . $this->getOrmType($type) . '",nullable=' . $nullable . ')';
-                break;
+        $entityRelation = $attribute->getEntityRelation();
+        $column = '(type="' . $this->getOrmType($type) . '",nullable=' . $nullable . ',unique=' . $unique . ')';
+        $related = false;
+        if ($attribute->getType() == 'Add list') {
+            $related = strtolower($crudDefinition->getClassName());
+        } elseif ($this->relatedAttrName != "false") {
+            $related = $this->relatedAttrName;
         }
+
         $data = [
             '@var ' . $this->getPhpType($type),
             '@ORM\Column' . $column
         ];
-
-        if ($type === "Simple filepicker") {
-            $strExtension = '';
-            foreach ($attribute->getExtension() as $key => $item) {
-                if ($key + 1 == count($attribute->getExtension())) {
-                    $strExtension .= '"' . $item . '"';
+        switch (true) {
+            case $type === 'Simple image picker':
+                $data[] = '@Assert\File(mimeTypes={"image/jpeg","image/gif","image/png"}';
+                $data[] = '     ,maxSize = "1024k", mimeTypesMessage = "Veuillez selectionner une image valide (PNG/JPEG) "';
+                $data[] = '     ,maxSize= "1024k",maxSizeMessage = "Veuillez selectionner une image moins volumineuse (1 Mo maximum)"';
+                $data[] = '     )';
+                break;
+            case $type === "Simple select":
+                if ($related) {
+                    $data[] = "@ORM\ManyToOne(targetEntity=\"App\Entity\\$entityRelation\",inversedBy=\"$related\")";
                 } else {
-                    $strExtension .= '"' . $item . '",';
+                    $data[] = "@ORM\ManyToOne(targetEntity=\"App\Entity\\$entityRelation\")";
                 }
-            }
-            $data[] = '@Assert\File(mimeTypes={' . $strExtension . '})';
+                unset($data[0]); // remove "@var type"
+                unset($data[1]); // remove "@Column"
+                break;
+            case $type === "Add list":
+                $this->relatedAttrName = $attribute->getName();
+                $this->createManyToOneIfNotExist($entityRelation, $crudDefinition->getClassName());
+                $data[] = "@ORM\OneToMany(targetEntity=\"App\Entity\\$entityRelation\",mappedBy=\"$related\")";
+                unset($data[0]); // remove "@var type"
+                unset($data[1]); // remove "@Column"
+                break;
         }
 
         $str = $this->getAnnotation($data, 4);
-        $str .= "    private $" . $attribute->getName() . ";\n";
+        $str .= "    private $" . $attribute->getName() . ";\n\n";
 
         return $str;
     }
+
+    /**
+     * @param string $name
+     * @param string $relationClassName
+     */
+    protected function createManyToOneIfNotExist(string $name, string $relationClassName): void
+    {
+        $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($name);
+        $crudDefRelated = $this->yamlCrudTranslator->getCrudDefByClassName($relationClassName);
+        $exist = false;
+        foreach ($crudDef->getAttributes() as $key => $attribute) {
+            if ($attribute->getName() == strtolower($relationClassName)) {
+                unset($crudDef->getAttributes()[$key]);
+                break;
+            }
+        }
+
+        $relatedAttribute = new AttributeDefinition();
+        $relatedAttribute->setUnique(false);
+        $relatedAttribute->setShow(true);
+        $relatedAttribute->setEdit(true);
+        $relatedAttribute->setList(true);
+        $relatedAttribute->setEntityRelation(ucfirst($relationClassName));
+        $relatedAttribute->setLabel($crudDefRelated->getLabel());
+        $relatedAttribute->setNullable(false);
+        $relatedAttribute->setName(strtolower($crudDefRelated->getClassName()));
+        $relatedAttribute->setType('Simple select');
+        $relatedAttribute->setOrder(0);
+        $crudDef->addAttributes($relatedAttribute);
+
+        $this->yamlCrudTranslator->save($crudDef);
+        $this->save($crudDef);
+    }
+
 }

@@ -1,0 +1,40 @@
+{% if parent_classname != false %} {# for add list #}
+    <div id="parent_classname" data-classname="{{ parent_classname }}"></div>
+    {{ form_start(form,{"attr":{'novalidate' : 'novalidate',"onsubmit":'saveNew(this,event)','id': crud_def.classname ~ '-form'}}) }}
+{% else %} {# for normal form #}
+    {{ form_start(form,{"attr":{'novalidate' : 'novalidate',"onsubmit":'submitAddListsIfExist(event,this,\'' ~ crud_def.className ~ '\',\'' ~ path('appkweb_easy_crud_save_parent_json') ~ '\',\'' ~ path('appkweb_easy_crud_save_child_json')  ~'\')','id': crud_def.classname ~ '-form' }}) }}
+{% endif %}
+<div class="row">
+    {% for attribute in crud_def.attributes %}
+        {% if attribute.edit != false and (attribute.entityRelation != parent_classname or parent_classname == false) %}
+            {% if attribute.type == "Add list" and parent_classname == false %}
+                {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname })) }}
+            {% else %}
+                <div class="{% if attribute.type != "TinyMce" %}col-md-4{% else %}col-md-10 {% endif %} center">
+                    {% if errors[attribute.name] is defined %}
+                        {# keep old css class #}
+                        {% set base_css = '' %}
+                        {% if form[attribute.name].vars.attr.class is defined %}
+                            {% set base_css = form[attribute.name].vars.attr.class %}
+                        {% endif %}
+                        {{ form_label(form[attribute.name]) }}
+                        {% if errors[attribute.name] != 'true' %} {# if errors exist #}
+                            {{ form_widget(form[attribute.name],{'attr':{"class":base_css ~ ' is-invalid'}}) }}
+                            {% for error in errors[attribute.name] %}
+                                <p class="text-danger error-wrapper"><span class="badge badge-danger">Erreur</span> <i
+                                            class="text-error">{{ error }}</i></p>
+                            {% endfor %}
+                        {% else %}
+                            {% set data_class = 'is-valid' %}
+                            {{ form_widget(form[attribute.name],{'attr':{"class":base_css ~ ' is-valid'}}) }}
+                        {% endif %}
+                    {% else %}
+                        {{ form_row(form[attribute.name]) }}
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+{{ form_widget(form._token) }}
+{{ form_end(form, {'render_rest': false}) }}

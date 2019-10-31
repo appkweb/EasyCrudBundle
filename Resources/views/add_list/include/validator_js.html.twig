@@ -1,0 +1,33 @@
+<script type="text/javascript">
+    function validator(class_name, form, callback = false) {
+        var parent_classname = document.getElementById('parent_classname').getAttribute('data-classname');
+        var path = "{{ path('appkweb_easy_crud_validator_json') }}";
+        var postData = {'classname': class_name, 'parent_classname': parent_classname};
+        var formElements = form.elements;
+        for (var i = 0; i < formElements.length; i++) {
+            if (formElements[i].type != "submit") //we dont want to include the submit-buttom
+            {
+                var label = formElements[i].name.split('crud_maker[');
+                if (label.length > 1) {
+                    label = label[1].replace(']', '');
+                    if (label != '_token') postData[label] = formElements[i].value;
+                }
+            }
+        }
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var data = JSON.parse(xhttp.response);
+                if (data.status != false && callback) {
+                    callback();
+                } else {
+                    document.getElementById('form-content').innerHTML = data.template
+                    formInitJs();
+                }
+            }
+        };
+        xhttp.open("POST", path);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("data=" + JSON.stringify(postData));
+    }
+</script>

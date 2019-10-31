@@ -14,12 +14,7 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Controller;
 
-use Appkweb\Bundle\EasyCrudBundle\Form\Crud\CrudMakerType;
-use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -30,20 +25,41 @@ use Symfony\Component\Routing\Annotation\Route;
 class CrudController extends AbstractCrudController
 {
     /**
-     * @Route("/{classname}/add.html", name="appkweb_easy_crud_add")
+     * @Route("/add/{prefix}/{classname}/{id}", name="appkweb_easy_crud_add",defaults={"id"=false})
      * @Template()
      */
-    public function add(Request $request)
+    public function add(string $classname, $id)
     {
-        return parent::add($request);
+        return parent::add($classname, $id);
     }
 
     /**
      * @Route("/{classname}/list.html", name="appkweb_easy_crud_list")
      * @Template()
      */
-    public function list(Request $request)
+    public function list()
     {
-        return parent::list($request);
+        return parent::list();
+    }
+
+    /**
+     * @Route("/remove/{classname}/{id}", name="appkweb_easy_crud_remove",defaults={"id"=null})
+     * @param string $classname
+     * @param int $id
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     * @throws \Exception
+     */
+    public function remove(string $classname = '', int $id)
+    {
+        return parent::remove($classname, $id);
+    }
+
+    /**
+     * @Route("/{classname}/show", name="appkweb_easy_crud_show")
+     * @Template()
+     */
+    public function show()
+    {
+        return parent::show();
     }
 }

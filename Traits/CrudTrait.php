@@ -13,12 +13,29 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Traits;
 
+use Appkweb\Bundle\EasyCrudBundle\Controller\AddListController;
 use Appkweb\Bundle\EasyCrudBundle\Crud\CrudDefinition;
 use Appkweb\Bundle\EasyCrudBundle\Form\Crud\CrudMakerType;
+use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
 use Appkweb\Bundle\EasyCrudBundle\Providers\GalleryInterface;
 use Appkweb\Bundle\EasyCrudBundle\Utils\CrudHelper;
+use Appkweb\Bundle\EasyCrudBundle\Validator\CrudValidator;
+use Appkweb\Bundle\EasyCrudBundle\Validator\CrudValidatorInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\RedirectController;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Templating\EngineInterface;
+use Twig\Environment;
 
 /**
  * Trait CrudTrait
@@ -26,45 +43,242 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  */
 trait CrudTrait
 {
+    protected $entity;
+
     /**
-     * @param FormInterface $form
-     * @throws \ReflectionException
+     * @var FormInterface
      */
-    protected function save(FormInterface $form): void
+    protected $form;
+
+    /**
+     * @var CrudDefinition
+     */
+    protected $crudDef;
+
+    /**
+     * @var Environment
+     */
+    protected $template;
+
+    /**
+     * @var YamlCrudTranslatorInterface
+     */
+    protected $yamlCrudTranslator;
+
+    /**
+     * @var FormFactoryInterface
+     */
+    protected $formFactory;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    protected $manager;
+
+    /**
+     * @var RouterInterface
+     */
+    protected $route;
+
+    /**
+     * @var GalleryInterface
+     */
+    protected $gallery;
+
+    /**
+     * @var FlashBagInterface
+     */
+    protected $flash;
+
+    /**
+     * @var RequestStack
+     */
+    protected $request;
+
+    /**
+     * @var CrudValidatorInterface
+     */
+    protected $crudValidator;
+
+
+    public function __construct(CrudValidatorInterface $crudValidator, RequestStack $requestStack, Environment $template, FlashBagInterface $flash, GalleryInterface $gallery, RouterInterface $route, EntityManagerInterface $entityManager, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory)
     {
-        $objectToSave = $this->hydrateObject($form);
-        $this->manager->persist($objectToSave);
+        $this->crudValidator = $crudValidator;
+        $this->template = $template;
+        $this->yamlCrudTranslator = $yamlCrudTranslator;
+        $this->flash = $flash;
+        $this->formFactory = $formFactory;
+        $this->manager = $entityManager;
+        $this->route = $route;
+        $this->gallery = $gallery;
+        $this->request = $requestStack->getMasterRequest();
+    }
+
+    /**
+     * @param $filename
+     * @return mixed
+     */
+    public function getImgUrl($filename)
+    {
+        return $this->gallery->getImgUrl($filename);
+    }
+
+    /**
+     * @param string $classname
+     * @param bool $parent_classname
+     * @param bool $id
+     * @return Response
+     * @throws \ReflectionException
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json')
+    {
+        $crudDef = $this->getCrudDefinition($classname);
+        $entity = $this->getEntityInstance($crudDef, $id);
+        if (!$classname) throw new \Exception('Classname param is missing !', 500);
+        $this->form = $this->getForm($crudDef, $entity);
+        $this->handleFormSubmit($crudDef, $entity); // If form is submitted
+        $errors = $this->crudValidator->getErrors();
+        $view = $this->template->render('@EasyCrud/crud/form_view.html.twig',
+            [
+                'parent_classname' => $parent_classname,
+                'form' => $this->form->createView(),
+                'crud_def' => $crudDef,
+                'errors' => $errors
+            ]
+        );
+        if ($formatResponse == 'json') {
+            return new Response($view);
+        }
+
+        return $view;
+    }
+
+    /**
+     * @param CrudDefinition $crudDef
+     * @param $entity
+     * @return RedirectResponse
+     */
+    public function handleFormSubmit(CrudDefinition $crudDef, $entity, CrudValidatorInterface $crudValidator = null)
+    {
+        $id = false;
+        $this->form->handleRequest($this->request);
+        if ($this->form->isSubmitted()) {
+            if ($entity->getId()) $id = $entity->getId();
+            $this->crudValidator->validate($crudDef, $this->form->getData(), $id);
+            if ($this->crudValidator->isValid()) {
+                $this->save($crudDef, $entity);
+                $this->flash->add("success", $crudDef->getLabel() . " mis à jour avec succès !");
+                $response = new RedirectResponse($this->route->generate('appkweb_easy_crud_list', ['classname' => $crudDef->getClassName()]));
+                $response->send(); // Can't return RedirectResponse in embedded Controller. We need to send the response
+            }
+        }
+    }
+
+    /**
+     * @param CrudDefinition $crudDef
+     * @param $entity
+     * @param FormFactoryInterface $form
+     */
+    protected function save(CrudDefinition $crudDef, $entity): void
+    {
+        $entityToSave = $this->hydrateObject($crudDef, $entity, $this->form->getData());
+        $this->manager->persist($entityToSave);
         $this->manager->flush();
     }
 
     /**
-     * @param $form
-     * @return \ReflectionClass
-     * @throws \ReflectionException
+     * @param CrudDefinition $crudDef
+     * @param $entity
+     * @param array $datas
+     * @param CrudDefinition|null $parentCrudDef
+     * @param bool $parentEntity
+     * @return mixed
+     * @throws \Exception
      */
-    protected function hydrateObject($form)
+    protected function hydrateObject(CrudDefinition $crudDef, $entity, array $datas, CrudDefinition $parentCrudDef = null, $parentEntity = false)
     {
-        $datas = $form->getData();
-        $objInstance = CrudHelper::getNewInstanceOf($datas['crud_def']->getClassName());
-        foreach ($datas as $key => $data) {
-            if ($key != "crud_def") {
-                if ($data instanceof UploadedFile) {
-                    $data = $this->gallery->upload($data);
+        if ($parentCrudDef && !$parentEntity || $parentEntity && !$parentCrudDef) {
+            throw new \Exception("Error ! if you transmit a parent you need 2 params (Entity and CrudDefiniton of it)", 500);
+        }
+        foreach ($crudDef->getAttributes() as $key => $attribute) {
+            $descriptor = $attribute->getName();
+            if ($parentCrudDef) $descriptor = ucfirst($attribute->getLabel());
+            if ($parentCrudDef && $attribute->getEntityRelation() == $parentCrudDef->getClassName()) { // if we hydrate AddList
+                $entity->{'set' . ucwords($attribute->getName())}($parentEntity);
+            } else {
+                if (array_key_exists($descriptor, $datas)) {
+                    $data = $datas[$descriptor];
+                    switch ($attribute->getType()) {
+                        case 'Simple image picker' :
+                            $oldFile = $entity->{'get' . ucwords($attribute->getName())}();
+                            if ($oldFile && $data) {
+                                $this->gallery->remove($oldFile);
+                            }
+                            if ($data) {
+                                $data = $this->gallery->upload($data);
+                            }
+                            break;
+                        case 'Date picker' :
+                            $data = \DateTime::createFromFormat('d/m/Y', $data);
+                            break;
+                        case 'Simple select' :
+                            if (is_string($data)) {
+                                $crud = $this->getCrudDefinition($attribute->getEntityRelation());
+                                $referer = $crud->getReferrer();
+                                $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
+                            }
+                            break;
+                    }
+                    $entity->{'set' . ucwords($attribute->getName())}($data);
                 }
-                $objInstance->{'set' . ucwords($key)}($data);
             }
         }
-        return $objInstance;
+        return $entity;
+    }
+
+    /**
+     * @param CrudDefinition $crudDef
+     * @param $entity
+     * @return FormInterface
+     */
+    protected function getForm(CrudDefinition $crudDef, $entity): FormInterface
+    {
+        foreach ($crudDef->getAttributes() as $attr) {
+            $attrData = $entity->{'get' . ucwords($attr->getName())}();
+            if ($attrData) {
+                if ($attr->getType() == 'Date picker') {
+                    $attrData = $attrData->format('d/m/Y');
+                }
+                $data[$attr->getName()] = $attrData;
+            }
+        }
+        $data['crud_def'] = $crudDef;
+        return $this->formFactory->create(CrudMakerType::class, $data);
+    }
+
+    /**
+     * @param string $className
+     */
+    protected function getCrudDefinition(string $className)
+    {
+        return $this->yamlCrudTranslator->getCrudDefByClassName($className);
     }
 
     /**
      * @param CrudDefinition $crudDefinition
-     * @return FormInterface
+     * @param bool $id
+     * @return object|\ReflectionClass|null
+     * @throws \ReflectionException
      */
-    protected function getForm(CrudDefinition $crudDefinition): FormInterface
+    protected function getEntityInstance(CrudDefinition $crudDef, $id = false)
     {
-        $data = ['crud_def' => $crudDefinition];
-        $form = $this->formFactory->create(CrudMakerType::class, $data);
-        return $form;
+        if ($id) {
+            return $this->manager->getRepository(CrudHelper::getAbsoluteClassName($crudDef->getClassName()))->find($id);
+        } else {
+            return CrudHelper::getNewInstanceOf($crudDef->getClassName());
+        }
     }
 }

@@ -15,20 +15,11 @@
 namespace Appkweb\Bundle\EasyCrudBundle\Controller;
 
 use Appkweb\Bundle\EasyCrudBundle\Crud\CrudDefinition;
-use Appkweb\Bundle\EasyCrudBundle\Form\Crud\CrudMakerType;
-use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
-use Appkweb\Bundle\EasyCrudBundle\Providers\GalleryInterface;
 use Appkweb\Bundle\EasyCrudBundle\Traits\CrudTrait;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
-use phpDocumentor\Reflection\Types\Object_;
+use http\Env\Response;
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Appkweb\Bundle\EasyCrudBundle\Utils\CrudHelper;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Class AbstractCrudController
@@ -39,87 +30,81 @@ abstract class AbstractCrudController
     use CrudTrait;
 
     /**
-     * @var YamlCrudTranslatorInterface
-     */
-    protected $yamlCrudTranslator;
-
-    /**
-     * @var FormFactoryInterface
-     */
-    protected $formFactory;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected $manager;
-
-    /**
-     * @var RouterInterface
-     */
-    protected $route;
-
-    /**
-     * @var GalleryInterface
-     */
-    protected $gallery;
-
-    public function __construct(GalleryInterface $gallery, RouterInterface $route, EntityManagerInterface $entityManager, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory)
-    {
-        $this->yamlCrudTranslator = $yamlCrudTranslator;
-        $this->formFactory = $formFactory;
-        $this->manager = $entityManager;
-        $this->route = $route;
-        $this->gallery = $gallery;
-    }
-
-    /**
-     * @param Request $request
+     * @param string $classname
+     * @param bool $id
      * @return array
      */
-    protected function add(Request $request)
+    protected function add(string $classname, $id)
     {
-        $className = $request->get('classname', false);
-        if (!$className) {
-            throw new \Exception("Param classname is missing", 500);
-        }
-        $crudDefinition = $this->yamlCrudTranslator->getCrudDefByClassName($className);
-        /* @var FormInterface $form */
-        $form = $this->getForm($crudDefinition);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->save($form);
-            return new RedirectResponse($this->route->generate('appkweb_easy_crud_generator_list', ['classname' => $className]));
-        }
-        return [
-            'crud_def' => $crudDefinition,
-            'form' => $form->createView(),
-            'page' => $request->get('page', $crudDefinition->getClassName() . '_add')
-        ];
+        $crudDef = $this->getCrudDefinition($classname);
+        return
+            [
+                'crud_def' => $crudDef,
+                'page' => $this->request->get('page', $crudDef->getClassName() . '_add'),
+                'id' => $id
+            ];
     }
-
 
     /**
      * @param Request $request
      * @return array
      * @throws \Exception
      */
-    protected function list(Request $request)
+    protected function list()
     {
-        $className = $request->get('classname', false);
+        $className = $this->request->get('classname', false);
         if (!$className) {
             throw new \Exception("Param classname is missing", 500);
         }
-        $crudDefinition = $this->yamlCrudTranslator->getCrudDefByClassName($className);
-        $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($className))->findAll();
+        $this->crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($className);
+        $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($className))
+            ->findBy([], [strtolower($this->crudDef->getReferrer()) => "ASC"]);
 
-        return ['list' => $list,
-            'crud_def' => $crudDefinition,
-            'page' => $request->get('page', $crudDefinition->getClassName() . '_list')
+        return [
+            'list' => $list,
+            'crud_def' => $this->crudDef,
+            'page' => $this->request->get('page', $this->crudDef->getClassName() . '_list')
         ];
     }
 
-    protected function show(CrudDefinition $crudDefinition)
+    /**
+     * @param Request $request
+     * @return array
+     */
+    protected function show()
     {
+        $className = $request->get('classname', false);
+        $id = $request->get('id', false);
+        $this->crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($className);
+        $this->entity = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($className))->find($id);
 
+        return [
+            'crud_def' => $this->crudDef,
+            'entity' => $this->entity,
+            'page' => $request->get('page', $this->crudDef->getClassName() . '_list')
+        ];
+    }
+
+    /**
+     * @param string $classname
+     * @param int $id
+     * @return RedirectResponse
+     * @throws \Exception
+     */
+    protected function remove(string $classname = '', int $id)
+    {
+        if (!$id || $classname == '') {
+            throw new \Exception("Param id or classname is missing", 500);
+        }
+        $entity = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))->find($id);
+        if (!$entity) {
+            $this->flash->add('error', 'Cette élément à déja été supprimé');
+        } else {
+            $crudDef = $this->getCrudDefinition($classname);
+            $this->manager->remove($entity);
+            $this->manager->flush();
+            $this->flash->add('success', $crudDef->getLabel() . " supprimé avec succès");
+        }
+        return new RedirectResponse($this->route->generate('appkweb_easy_crud_list', ['classname' => $classname]));
     }
 }

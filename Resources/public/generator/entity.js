@@ -46,6 +46,7 @@ function getEntityData() {
     var prefix = document.getElementById("entity_def_prefix").value;
     var label = document.getElementById("entity_def_label").value;
     var order = document.getElementById("entity_def_order").value;
+    var referrer = document.getElementById("entity_def_referrer").value;
     var visible = document.getElementById("entity_def_visible").checked;
     var remove = document.getElementById("entity_def_remove").checked;
     var list = document.getElementById("entity_def_list").checked;
@@ -54,30 +55,47 @@ function getEntityData() {
     var show = document.getElementById("entity_def_show").checked;
     var attributes = [];
     var myTab = document.getElementById('datatable');
+    var oldClassname = document.getElementById('old-classname');
+    if (oldClassname) {
+        oldClassname = oldClassname.textContent
+    } else {
+        oldClassname = false;
+    }
 
     for (i = 1; i < myTab.rows.length; i++) {
         var objCells = myTab.rows.item(i).cells;
+        var entity_relation = objCells.item(3).textContent.split('Entity linked : ')
+        attr_type = objCells.item(3).textContent;
+        if (entity_relation.length > 1) {
+            attr_type = entity_relation[0]
+            entity_relation = entity_relation[1]
+        } else {
+            entity_relation = false;
+        }
         cell = {
             attr_name: objCells.item(1).textContent,
             attr_label: objCells.item(2).textContent,
-            attr_type: objCells.item(3).textContent,
-            attr_entity_relation: objCells.item(4).textContent,
-            attr_extension: objCells.item(5).textContent,
-            attr_size: objCells.item(6).textContent,
+            attr_type: attr_type,
+            attr_list: objCells.item(4).textContent,
+            attr_edit: objCells.item(5).textContent,
+            attr_show: objCells.item(6).textContent,
             attr_nullable: objCells.item(7).textContent,
-            attr_visible: objCells.item(8).textContent,
+            attr_unique: objCells.item(8).textContent,
             attr_order: objCells.item(9).textContent,
+            attr_entity_relation: entity_relation,
         }
         attributes.push(cell);
     }
 
     var strData = 'entityName=' + entityName
         + '&className=' + className
+        + '&oldClassName=' + oldClassname
         + '&prefix=' + prefix
         + '&label=' + label
         + '&order=' + order
         + '&visible=' + visible
         + '&remove=' + remove
+        + '&referrer=' + referrer
         + '&list=' + list
         + '&edit=' + edit
         + '&add=' + add

@@ -1,0 +1,11 @@
+.add-list > .card-header {
+    background-color:  #343a40;
+    font-size: 16px;
+    font-style: bold;
+    color: white;
+}
+
+.add-list
+{
+    border: 2px black solid;
+}

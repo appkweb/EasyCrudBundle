@@ -24,9 +24,10 @@ use Symfony\Component\HttpKernel\KernelInterface;
 interface PhpClassCreatorInterface
 {
     /**
+     * Create php Class by CrudDefinition transmit in param
      * @param CrudDefinition $crudDefinition
      */
-    public function save(CrudDefinition $crudDefinition): void;
+    public function save(CrudDefinition $crudDefinition, $oldClassName = "false"): void;
 
     /**
      * @param string $className
@@ -56,5 +57,10 @@ interface PhpClassCreatorInterface
      * @param string $name
      */
     public function createEntityRepoIfNotExist(string $name): void;
+
+    /**
+     * @param string $classname
+     */
+    public function removeRelations(string $classname):void ;
 
 }

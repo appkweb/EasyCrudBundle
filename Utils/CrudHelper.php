@@ -15,7 +15,10 @@ namespace Appkweb\Bundle\EasyCrudBundle\Utils;
 
 use Appkweb\Bundle\EasyCrudBundle\Crud\AttributeDefinition;
 use Appkweb\Bundle\EasyCrudBundle\Crud\CrudDefinition;
+use Appkweb\Bundle\EasyCrudBundle\Type\CalendarType;
+use Appkweb\Bundle\EasyCrudBundle\Type\EasyCrudFileType;
 use Appkweb\Bundle\EasyCrudBundle\Type\TinymceType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -36,16 +39,14 @@ class CrudHelper
 
         $type = $attributeDefinition->getType();
         switch (true) {
-            case $type == "Simple input text":
+            case $type == "Simple input text" || $type == "Date picker" || $type == 'Number':
                 return TextType::class;
-            case $type == "Number":
-                return NumberType::class;
-            case $type == "TextArea" :
+            case $type == "TextArea" || $type == "TinyMce" :
                 return TextareaType::class;
-            case $type == "TinyMce" :
-                return TinymceType::class;
-            case $type == "Simple filepicker" :
-                return FileType::class;
+            case $type == "Simple image picker" :
+                return EasyCrudFileType::class;
+            case $type == "Simple select":
+                return EntityType::class;
         }
     }
 

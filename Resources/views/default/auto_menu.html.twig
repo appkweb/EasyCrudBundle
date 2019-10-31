@@ -1,5 +1,5 @@
 {% for entity in entities %}
-    {% if entity.list and  entity.add %}
+    {% if entity.visible and (entity.list or entity.add) %}
         <li class="nav-item has-treeview {% if page == entity.classname ~ "_add" or page == entity.classname ~ "_list" %}menu-open{% endif %}">
             <a href="#"
                class="{% if page == entity.classname ~ "_add" or page == entity.classname ~ "_list" %}active{% endif %} nav-link">
@@ -10,20 +10,24 @@
                 </p>
             </a>
             <ul class="nav nav-treeview">
-                <li class="nav-item">
-                    <a href="{{ path('appkweb_easy_crud_list',{classname:entity.className|lower }) }}"
-                       class="{% if page == entity.classname ~ "_list" %}active{% endif %} nav-link">
-                        <i class="fa fa-list nav-icon"></i>
-                        <p>Liste</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ path('appkweb_easy_crud_add',{classname:entity.className|lower }) }}"
-                       class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
-                        <i class="far fa fa-plus nav-icon"></i>
-                        <p>Ajouter</p>
-                    </a>
-                </li>
+                {% if entity.list == true %}
+                    <li class="nav-item">
+                        <a href="{{ path('appkweb_easy_crud_list',{classname:entity.className|lower }) }}"
+                           class="{% if page == entity.classname ~ "_list" %}active{% endif %} nav-link">
+                            <i class="fa fa-list nav-icon"></i>
+                            <p>Liste</p>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if entity.add == true %}
+                    <li class="nav-item">
+                        <a href="{{ path('appkweb_easy_crud_add',{classname:entity.className|lower,prefix:entity.prefix }) }}"
+                           class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
+                            <i class="far fa fa-plus nav-icon"></i>
+                            <p>Ajouter</p>
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </li>
         {#                <li class="nav-item">#}

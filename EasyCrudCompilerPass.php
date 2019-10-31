@@ -30,7 +30,7 @@ class EasyCrudCompilerPass implements CompilerPassInterface
     {
         if ($container->hasParameter('twig.form.resources')) {
             $ressources = $container->getParameter("twig.form.resources") ?: [];
-            array_unshift($ressources, '@EasyCrud/type/tinymce.html.twig');
+            array_unshift($ressources, '@EasyCrud/type/easy_crud_file.html.twig');
             $container->setParameter('twig.form.resources', $ressources);
         }
     }

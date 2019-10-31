@@ -1,40 +1,43 @@
 {% extends "@EasyCrud/base.html.twig" %}
 
-
 {% block title %}Gestion des {{ crud_def.label }}{% endblock %}
 {% block sub_title %}{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('bundles/easycrud/crud/addList.js') }}" type="text/javascript"></script>
+    {{ include('@EasyCrud/add_list/include/validator_js.html.twig') }}
+{% endblock %}
 
 {% block content %}
     <div class="col-md-12 center">
         <div class="card card-primary">
             <div class="card-header">
-                <h3 class="card-title">Ajouter {{ crud_def.label }}</h3>
+                <h3 class="card-title">{% block card_title %}Ajouter {{ crud_def.label }}{% endblock %}</h3>
             </div>
             <div class="card-body text-center">
-                {{ form_start(form) }}
-                <div class="row">
-                    {% for attribute in crud_def.attributes %}
-                        {% if attribute.type == "TextArea" or attribute.type == "TinyMce" %}
-                            <div class="col-md-12 no-padding">
-                                <div class="col-md-9 center">
-                                    {{ form_row(form[attribute.name]) }}
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="col-md-3 center">
-                                {{ form_row(form[attribute.name]) }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                {{ form_rest(form) }}
-                <div class="text-center space">
-                    <button type="submit" class="btn btn-success">
-                        <span class="fa fa-plus"></span> Enregistrer
-                    </button>
-                </div>
-                {{ form_end(form) }}
+                {% block progress_bar %}
+                    {{ include('@EasyCrud/crud/include/progress_bar.html.twig') }}
+                {% endblock %}
+
+                {% block form_view %}
+                    {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getFormView',{'classname': crud_def.className,'id':id})) }}
+                {% endblock %}
+
+                {% block actions %}
+                    {{ include('@EasyCrud/crud/include/add_actions.html.twig',{'crud_def':crud_def,'id':id}) }}
+                {% endblock %}
             </div>
         </div>
     </div>
+
+    {# Modal to addList #}
+    <div class="modal" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="modal-result"></div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

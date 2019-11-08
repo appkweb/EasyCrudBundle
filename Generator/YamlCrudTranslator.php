@@ -140,7 +140,7 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
     public function getCrudDefByClassName(string $className): CrudDefinition
     {
         if (!$className) throw new \Exception("classname param is missing !", 500);
-        $fileName = $className . '.yaml';
+        $fileName = $dataFile['class_name'] . '.yaml';
         $dataFile = Yaml::parseFile($this->root . DIRECTORY_SEPARATOR . $fileName);
         $crudDef = new CrudDefinition();
         $crudDef->setList($dataFile['list']);

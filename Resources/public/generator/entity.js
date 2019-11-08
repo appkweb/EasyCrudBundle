@@ -90,7 +90,7 @@ function getEntityData() {
             attr_type: attr_type,
             attr_list: objCells[4].textContent,
             attr_edit: objCells[5].textContent,
-            attr_show: objCells[6).textContent,
+            attr_show: objCells[6].textContent,
             attr_nullable: objCells[7].textContent,
             attr_unique: objCells[8].textContent,
             attr_order: objCells[9].textContent,

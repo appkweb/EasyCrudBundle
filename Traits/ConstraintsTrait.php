@@ -55,6 +55,9 @@ trait ConstraintsTrait
     }
 
 
+    /**
+     *
+     */
     protected function notBlankConstraint(): void
     {
         if (!$this->attributeDefinition->isNullable() && ($this->value == '' || $this->value == null)) {
@@ -62,6 +65,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function specialCharConstraint(): void
     {
         if ($this->type != 'TinyMce' && (preg_match("/<[^>]+>/", $this->value) || preg_match("/<[^>]+>/", $this->value))) {
@@ -69,6 +75,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function unsafeUrlConstraint(): void
     {
         if (strpos($this->value, 'http://') !== false) {
@@ -76,6 +85,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function numericConstraint(): void
     {
         if (!is_numeric($this->value) && $this->type == 'Number' && $this->value != '') {
@@ -83,6 +95,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function dateConstraint(): void
     {
         if ($this->type == 'Date picker' && !\DateTime::createFromFormat('d/m/Y', $this->value)) {
@@ -90,6 +105,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function imgFormatConstraint(): void
     {
         if ($this->value)
@@ -100,6 +118,9 @@ trait ConstraintsTrait
         }
     }
 
+    /**
+     *
+     */
     protected function isNotUnique(): void
     {
         if ($this->attributeDefinition->isUnique()) {

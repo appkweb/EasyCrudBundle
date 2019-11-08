@@ -1,0 +1,9 @@
+{% for attribute in crud_def.attributes %}
+    {% if attribute.type == "Add list" %}
+        {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname,'id':entity.id,'allow_actions':false})) }}
+    {% else %}
+        <div class="col-md-6 center">
+            <strong>{{ attribute.label }} : </strong> {{ attribute(entity, attribute.name) }}
+        </div>
+    {% endif %}
+{% endfor %}

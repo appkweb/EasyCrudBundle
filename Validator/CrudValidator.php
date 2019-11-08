@@ -36,9 +36,11 @@ class CrudValidator implements CrudValidatorInterface
     /**
      * @param CrudDefinition $crudDefinition
      * @param array $data
-     * @return array
+     * @param int|null $id
+     * @param bool $checkUnique
+     * @return array|void
      */
-    public function validate(CrudDefinition $crudDefinition, $data = [], $id = false)
+    public function validate(CrudDefinition $crudDefinition, array $data = [], int $id = null, bool $checkUnique = true)
     {
         $this->crudDef = $crudDefinition;
         $this->id = $id;

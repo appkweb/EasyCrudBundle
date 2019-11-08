@@ -27,12 +27,12 @@
                 <div class="row">
                     <div class="col-md-3 center">
                         <div class="form-group">
-                            {{ form_row(form.entityName) }}
+                            {{ form_row(form.className) }}
                         </div>
                     </div>
                     <div class="col-md-3 center">
                         <div class="form-group">
-                            {{ form_row(form.className) }}
+                            {{ form_row(form.label) }}
                         </div>
                     </div>
                 </div>
@@ -40,12 +40,12 @@
                 <div class="row">
                     <div class="col-md-3 center">
                         <div class="form-group">
-                            {{ form_row(form.prefix) }}
+                            {{ form_row(form.singularLabel) }}
                         </div>
                     </div>
                     <div class="col-md-3 center">
                         <div class="form-group">
-                            {{ form_row(form.label) }}
+                            {{ form_row(form.plurialLabel) }}
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,8 @@
                             </td>
                             <td>{{ attr.name }}</td>
                             <td>{{ attr.label }}</td>
-                            <td><p class="text-center space-top">{{ attr.type }}</p>{% if attr.entityRelation %}<div class="relation">Entity linked : {{ attr.entityRelation }}</div>{% endif %}</td>
+                            <td><p class="text-center space-top">{{ attr.type }}</p>{% if attr.entityRelation %}
+                                <div class="relation">Entity linked : {{ attr.entityRelation }}</div>{% endif %}</td>
                             <td>{{ attr.list ? 'true' : 'false' }}</td>
                             <td>{{ attr.edit ? 'true' : 'false' }}</td>
                             <td>{{ attr.show ? 'true' : 'false' }}</td>

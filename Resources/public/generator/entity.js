@@ -41,10 +41,10 @@ function save(e, path) {
  * @returns {string}
  */
 function getEntityData() {
-    var entityName = document.getElementById("entity_def_entityName").value;
     var className = document.getElementById("entity_def_className").value;
-    var prefix = document.getElementById("entity_def_prefix").value;
     var label = document.getElementById("entity_def_label").value;
+    var singular_label = document.getElementById("entity_def_singularLabel").value;
+    var plurial_label = document.getElementById("entity_def_plurialLabel").value;
     var order = document.getElementById("entity_def_order").value;
     var referrer = document.getElementById("entity_def_referrer").value;
     var visible = document.getElementById("entity_def_visible").checked;
@@ -87,11 +87,11 @@ function getEntityData() {
         attributes.push(cell);
     }
 
-    var strData = 'entityName=' + entityName
-        + '&className=' + className
+    var strData = '&className=' + className
         + '&oldClassName=' + oldClassname
-        + '&prefix=' + prefix
         + '&label=' + label
+        + '&singular_label=' + singular_label
+        + '&plurial_label=' + plurial_label
         + '&order=' + order
         + '&visible=' + visible
         + '&remove=' + remove

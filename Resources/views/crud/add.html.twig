@@ -21,7 +21,9 @@
                 {% endblock %}
 
                 {% block form_view %}
-                    {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getFormView',{'classname': crud_def.className,'id':id})) }}
+                    <div data-id="{{ id }}" id="form-row">
+                        {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getFormView',{'classname': crud_def.className,'id':id})) }}
+                    </div>
                 {% endblock %}
 
                 {% block actions %}

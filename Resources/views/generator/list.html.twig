@@ -21,9 +21,9 @@
                     <thead>
                     <tr>
                         <th>Actions</th>
-                        <th>Entity name</th>
                         <th>Label</th>
-                        <th>Prefix</th>
+                        <th>Singular label</th>
+                        <th>Plurial label</th>
                         <th>Classname</th>
                         <th>Visible</th>
                         <th>Edit</th>
@@ -40,9 +40,9 @@
                                 <a style="color: red" href="{{ path('appkweb_easy_crud_generator_remove',{className:entity.className}) }}"><span class="fa fa-trash"></span></a>
                                 <a href="{{ path('appkweb_easy_crud_generator_add',{className:entity.className}) }}"><span class="fa fa-edit"></span></a>
                             </td>
-                            <td>{{ entity.entityName }}</td>
                             <td>{{ entity.label }}</td>
-                            <td>{{ entity.prefix }}</td>
+                            <td>{{ entity.singularLabel }}</td>
+                            <td>{{ entity.plurialLabel }}</td>
                             <td>{{ entity.className }}</td>
                             <td>{{ entity.visible  ? 'True':'False' }}</td>
                             <td>{{ entity.edit  ? 'True':'False'}}</td>

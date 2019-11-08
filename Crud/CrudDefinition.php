@@ -38,11 +38,6 @@ class CrudDefinition
     /**
      * @var string
      */
-    private $entityName;
-
-    /**
-     * @var string
-     */
     private $prefix;
 
     /**
@@ -53,8 +48,17 @@ class CrudDefinition
     /**
      * @var string
      */
-    private $referrer;
+    private $plurialLabel;
 
+    /**
+     * @var string
+     */
+    private $singularLabel;
+
+    /**
+     * @var string
+     */
+    private $referrer;
 
     /**
      * @var int
@@ -111,24 +115,6 @@ class CrudDefinition
     public function setClassName(string $className): CrudDefinition
     {
         $this->className = $className;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEntityName(): string
-    {
-        return $this->entityName;
-    }
-
-    /**
-     * @param string $entityName
-     * @return CrudDefinition
-     */
-    public function setEntityName(string $entityName): CrudDefinition
-    {
-        $this->entityName = $entityName;
         return $this;
     }
 
@@ -327,6 +313,42 @@ class CrudDefinition
     public function setReferrer(string $referrer): CrudDefinition
     {
         $this->referrer = $referrer;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPlurialLabel(): string
+    {
+        return $this->plurialLabel;
+    }
+
+    /**
+     * @param string $plurialLabel
+     * @return CrudDefinition
+     */
+    public function setPlurialLabel(string $plurialLabel): CrudDefinition
+    {
+        $this->plurialLabel = $plurialLabel;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSingularLabel(): string
+    {
+        return $this->singularLabel;
+    }
+
+    /**
+     * @param string $singularLabel
+     * @return CrudDefinition
+     */
+    public function setSingularLabel(string $singularLabel): CrudDefinition
+    {
+        $this->singularLabel = $singularLabel;
         return $this;
     }
 }

@@ -13,19 +13,7 @@
             </div>
             <div class="card-body text-center">
                 <div class="row">
-                    {% for attribute in crud_def.attributes %}
-                        {% if attribute.type == "TextArea" or attribute.type == "TinyMce" %}
-                            <div class="col-md-12 no-padding">
-                                <div class="col-md-9 center">
-                                    {{ form_row(form[attribute.name]) }}
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="col-md-2 center">
-                                <strong>{{ attribute.label }} : </strong> {{ attribute(entity, attribute.name) }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
+                    {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getPrintView',{'classname': crud_def.className,'id':entity.id})) }}
                 </div>
 
                 <div class="text-center space">
@@ -35,7 +23,8 @@
                     <a href="{{ path('appkweb_easy_crud_add',{classname:crud_def.className,id:entity.id}) }}"
                        style="color: white" class="btn btn-primary"><span class="fa fa-edit"></span> Modifier
                     </a>
-                    <a  href="{{ path('appkweb_easy_crud_remove',{classname:crud_def.className,id:entity.id}) }}" style="color: white" class="btn btn-danger"><span class="fa fa-trash"></span> Supprimer
+                    <a href="{{ path('appkweb_easy_crud_remove',{classname:crud_def.className,id:entity.id}) }}"
+                       style="color: white" class="btn btn-danger"><span class="fa fa-trash"></span> Supprimer
                     </a>
                 </div>
 

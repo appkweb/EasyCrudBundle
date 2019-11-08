@@ -39,9 +39,9 @@ class EntityDefType extends AbstractType
         }
         $builder
             ->add('className', TextType::class, ['label' => 'Name of class', 'required' => false, 'attr' => ['class' => 'form-control']])
-            ->add('entityName', TextType::class, ['label' => 'Name of entity', 'required' => true, 'attr' => ['class' => 'form-control']])
             ->add('label', TextType::class, ['label' => 'Label to generate crud title', 'required' => true, 'attr' => ['class' => 'form-control']])
-            ->add('prefix', TextType::class, ['label' => 'Prefix of crud path', 'required' => false, 'attr' => ['class' => 'form-control']])
+            ->add('singularLabel', TextType::class, ['label' => 'Singular label to generate crud title', 'required' => true, 'attr' => ['class' => 'form-control']])
+            ->add('plurialLabel', TextType::class, ['label' => 'Plurial label to generate crud title', 'required' => true, 'attr' => ['class' => 'form-control']])
             ->add('order', NumberType::class, ['label' => 'Order of print', 'required' => false, 'attr' => ['class' => 'form-control']])
             ->add('visible', CheckboxType::class, ['label' => 'Menu of entity is visible ?', 'required' => false, 'attr' => ['class' => 'form-control']])
             ->add('remove', CheckboxType::class, ['label' => 'Values can be removed ?', 'required' => false, 'attr' => ['class' => 'form-control']])

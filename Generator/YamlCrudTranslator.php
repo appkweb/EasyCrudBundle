@@ -55,14 +55,14 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
         $attributes = false;
         $yamlData = [
             'class_name' => $crudDef->getClassName(),
-            'entity_name' => $crudDef->getEntityName(),
+            'singular_label' => $crudDef->getSingularLabel(),
+            'plurial_label' => $crudDef->getPlurialLabel(),
             'label' => $crudDef->getLabel(),
             'visible' => $crudDef->isVisible(),
             'edit' => $crudDef->isEdit(),
             'remove' => $crudDef->isRemove(),
             'list' => $crudDef->isList(),
             'order' => $crudDef->getOrder(),
-            'prefix' => $crudDef->getPrefix(),
             'add' => $crudDef->isAdd(),
             'show' => $crudDef->isShow(),
             'referrer' => $crudDef->getReferrer()
@@ -110,13 +110,13 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
                     $crudDef = new CrudDefinition();
                     $crudDef->setClassName($entityData['class_name']);
                     $crudDef->setLabel($entityData['label']);
+                    $crudDef->setSingularLabel($entityData['singular_label']);
+                    $crudDef->setPlurialLabel($entityData['plurial_label']);
                     $crudDef->setVisible($entityData['visible']);
                     $crudDef->setRemove($entityData['remove']);
                     $crudDef->setOrder($entityData['order']);
-                    $crudDef->setEntityName($entityData['entity_name']);
                     $crudDef->setEdit($entityData['edit']);
                     $crudDef->setReferrer($entityData['referrer']);
-                    $crudDef->setPrefix($entityData['prefix']);
                     $crudDef->setList($entityData['list']);
                     $crudDef->setAdd($entityData['add']);
                     $crudDef->setShow($entityData['show']);
@@ -139,21 +139,19 @@ final class YamlCrudTranslator implements YamlCrudTranslatorInterface
      */
     public function getCrudDefByClassName(string $className): CrudDefinition
     {
+        if (!$className) throw new \Exception("classname param is missing !", 500);
         $fileName = ucfirst($className) . '.yaml';
         $dataFile = Yaml::parseFile($this->root . DIRECTORY_SEPARATOR . $fileName);
-        if (!$dataFile) {
-            throw new \Exception("Any entity definition of EasyCrudBundle corespond to " . $className . " classname", 500);
-        }
         $crudDef = new CrudDefinition();
         $crudDef->setList($dataFile['list']);
-        $crudDef->setPrefix($dataFile['prefix']);
         $crudDef->setEdit($dataFile['edit']);
-        $crudDef->setEntityName($dataFile['entity_name']);
         $crudDef->setClassName($dataFile['class_name']);
         $crudDef->setRemove($dataFile['remove']);
         $crudDef->setOrder($dataFile['order']);
         $crudDef->setVisible($dataFile['visible']);
         $crudDef->setLabel($dataFile['label']);
+        $crudDef->setSingularLabel($dataFile['singular_label']);
+        $crudDef->setPlurialLabel($dataFile['plurial_label']);
         $crudDef->setAdd($dataFile['add']);
         $crudDef->setShow($dataFile['show']);
         $crudDef->setReferrer($dataFile['referrer']);

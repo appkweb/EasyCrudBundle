@@ -140,7 +140,6 @@ class GeneratorController
     {
         $classname = $request->get('className');
         $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
-        $entityName = $crudDef->getEntityName();
         $this->phpClassCreator->removeRelations($classname);
         $this->yamlCrudTranslator->remove($classname);
         $this->phpClassCreator->remove($classname);
@@ -157,7 +156,7 @@ class GeneratorController
         // Create getters ans setters
         $process = new Process(['php', '../bin/console', 'make:entity', '--regenerate', 'App']);
         $process->run();
-
+        $entityName = $this->phpClassCreator->replaceUpperCaseByUnderscore($classname);
         $sql = 'DROP TABLE ' . $entityName . ';';
         $connection = $this->em->getConnection();
         $stmt = $connection->prepare($sql);
@@ -180,9 +179,9 @@ class GeneratorController
         $crud->setClassName(ucfirst($request->get('className')));
         $crud->setEdit($request->get('edit') === 'true' ? true : false);
         $crud->setLabel(ucfirst($request->get('label')));
-        $crud->setEntityName(strtolower($request->get('entityName')));
+        $crud->setPlurialLabel(ucfirst($request->get('plurial_label')));
+        $crud->setSingularLabel(ucfirst($request->get('singular_label')));
         $crud->setList($request->get('list')=== 'true' ? true : false);
-        $crud->setPrefix($request->get('prefix'));
         $crud->setRemove($request->get('remove')=== 'true' ? true : false);
         $crud->setVisible($request->get('visible') === 'true' ? true : false);
         $crud->setOrder($request->get('order'));
@@ -201,7 +200,7 @@ class GeneratorController
             $attrDef->setEdit($attribute['attr_edit'] === 'true' ? true : false);
             $attrDef->setUnique($attribute['attr_unique'] === 'true' ? true : false);
             $attrDef->setNullable($attribute['attr_nullable'] === 'true' ? true : false);
-            $attrDef->setType($attribute['attr_type']);
+            $attrDef->setType(trim($attribute['attr_type'], " \t\n\r"));
             $crud->addAttributes($attrDef);
         }
 

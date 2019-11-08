@@ -25,7 +25,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class CrudController extends AbstractCrudController
 {
     /**
-     * @Route("/add/{prefix}/{classname}/{id}", name="appkweb_easy_crud_add",defaults={"id"=false})
+     * @Route("/add/{classname}/{id}", name="appkweb_easy_crud_add",defaults={"id"=false})
      * @Template()
      */
     public function add(string $classname, $id)
@@ -34,12 +34,15 @@ class CrudController extends AbstractCrudController
     }
 
     /**
-     * @Route("/{classname}/list.html", name="appkweb_easy_crud_list")
+     * @Route("/list/{classname}", name="appkweb_easy_crud_list")
      * @Template()
+     * @param string $classname
+     * @return array
+     * @throws \Exception
      */
-    public function list()
+    public function list(string $classname = '')
     {
-        return parent::list();
+        return parent::list($classname);
     }
 
     /**
@@ -55,11 +58,11 @@ class CrudController extends AbstractCrudController
     }
 
     /**
-     * @Route("/{classname}/show", name="appkweb_easy_crud_show")
+     * @Route("/{classname}/show/{id}", name="appkweb_easy_crud_show",defaults={"id"=null})
      * @Template()
      */
-    public function show()
+    public function show(string $classname = '', int $id = null)
     {
-        return parent::show();
+        return parent::show($classname,$id);
     }
 }

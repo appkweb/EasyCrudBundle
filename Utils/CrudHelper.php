@@ -36,7 +36,6 @@ class CrudHelper
      */
     public static function getStrFormType(AttributeDefinition $attributeDefinition): string
     {
-
         $type = $attributeDefinition->getType();
         switch (true) {
             case $type == "Simple input text" || $type == "Date picker" || $type == 'Number':

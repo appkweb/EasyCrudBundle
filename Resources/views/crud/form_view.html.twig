@@ -8,7 +8,7 @@
     {% for attribute in crud_def.attributes %}
         {% if attribute.edit != false and (attribute.entityRelation != parent_classname or parent_classname == false) %}
             {% if attribute.type == "Add list" and parent_classname == false %}
-                {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname })) }}
+                {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname,'id':id })) }}
             {% else %}
                 <div class="{% if attribute.type != "TinyMce" %}col-md-4{% else %}col-md-10 {% endif %} center">
                     {% if errors[attribute.name] is defined %}

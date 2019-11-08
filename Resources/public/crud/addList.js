@@ -25,7 +25,9 @@ var current_row_edited;
  */
 function getFormModal(className, callback = false, is_edit = false) {
     global_is_edit = is_edit;
-    if (!is_edit) document.getElementById('loader-new').style = 'display:inline-block';
+    if (!is_edit) {
+        document.getElementById('loader-new').style = 'display:inline-block';
+    }
     var path = document.getElementById('path-edit-modal').textContent;
     class_name = className;
     xhttp = new XMLHttpRequest();
@@ -100,6 +102,7 @@ function saveNew(form, e) {
         var dataTable = $(id).DataTable({
             "destroy": true,
             "paging": true,
+            "pageLength": 5,
             "lengthChange": false,
             "searching": true,
             "ordering": true,
@@ -119,11 +122,10 @@ function saveNew(form, e) {
         var labels = document.getElementById('myModal').getElementsByTagName('LABEL');
 
         var htmlActions = '<div class="text-center">' +
-            '<button type="button" onclick="loadModalEdit(class_name,this)" class="btn btn-default"><span style="display: none" class="loader-edit spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="fa fa-edit"></span></button>' +
-            '<button type="button" onclick="removeRow(class_name,this)" style="margin-left: 5px" class="remove btn btn-danger"><span class="fa fa-trash"></span></button>' +
+            '<button type="button" onclick="loadModalEdit(\'' + class_name + '\',this)" class="btn btn-default"><span style="display: none" class="loader-edit spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="fa fa-edit"></span></button>' +
+            '<button type="button" onclick="removeRow(\'' + class_name + '\',this)" style="margin-left: 5px" class="remove btn btn-danger"><span class="fa fa-trash"></span></button>' +
             '</div>';
-        var row = ["<td class='text-center'><p class='text-center'>" + htmlActions + "</p></td>"];
-        console.log(labels);
+        var row = ["<td class='text-center'> " + htmlActions + "</td>"];
         for (var i = 0; i < labels.length; i++) {
             if (labels[i].htmlFor != '') {
                 var elem = document.getElementById(labels[i].htmlFor);
@@ -148,7 +150,7 @@ function saveNew(form, e) {
                                     nb_image++;
                                     break;
                             }
-                            row.push("<td class='text-center'><p id='data-" + class_name + "-" + label + "' data-type='" + elem.getAttribute('data-type') + "' class='text-center space-top' >" + data + "</p></td>");
+                            row.push("<td class='text-center'><p data-type='" + elem.getAttribute('data-type') + "' class='text-center space-top' >" + data + "</p></td>");
                         }
                     }
                 }
@@ -179,19 +181,30 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
     if (addLists.length > 0) {
         e.preventDefault();
         for (var i = 0; i < addLists.length; i++) {
-            var table = addLists[i].getElementsByClassName('datatable')[0];
-            element_rows.push([table]);
+            var table_id = addLists[i].getElementsByClassName('datatable')[0].getAttribute('id');
+            var table = $('#' + table_id).DataTable();
+            var rows = table.$("tr");
+            element_rows.push([addLists[i].getElementsByClassName('datatable')[0]]);
             nbElements++;
-            if (table.rows.length > 0) {
+            Object.size = function (obj) {
+                var size = 0, key;
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) size++;
+                }
+                return size - 1;
+            };
+            var size = Object.size(rows);
+            if (size > 0) {
                 window.scrollTo(0, 0);
-                document.getElementById('loader').style.display = 'block';
-                for (var j = 1; table.rows.length > j; j++) {
-                    element_rows[i].push(table.rows[j]);
+                for (var j = 0; size > j; j++) {
+                    element_rows[i].push(rows[j]);
                     nb_rows++;
                 }
             }
         }
+
         saveParent(parent_classname, path_parent, path_child, form, function () {
+            document.getElementById('loader').style.display = 'block';
             saveElement(path_child);
         });
     }
@@ -205,7 +218,12 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
  * @param callback
  */
 function saveParent(parent_classname, path_parent, path_child, form, callback) {
-    var postData = {'classname': parent_classname};
+    parent_id = document.getElementById('form-row').getAttribute('data-id');
+
+    if (parent_id === '') {
+        parent_id = false;
+    }
+    var postData = {'classname': parent_classname, 'id': parent_id};
     var formElements = form.elements;
     for (var i = 0; i < formElements.length; i++) {
         if (formElements[i].type != "submit") //we dont want to include the submit-buttom
@@ -217,12 +235,33 @@ function saveParent(parent_classname, path_parent, path_child, form, callback) {
             }
         }
     }
+
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             var data = JSON.parse(xhttp.response);
-            parent_id = data.id;
-            callback();
+            if (data.status == true) {
+                parent_id = data.id;
+                callback();
+            } else {
+                // keep old add Lists html
+                var oldAddLists = [];
+                var addLists = document.getElementsByClassName('add-list');
+                for (let addList of addLists) {
+                    oldAddLists.push(addList.innerHTML);
+                }
+                // print form errors
+                document.getElementById('form-row').innerHTML = data.template;
+                addLists = document.getElementsByClassName('add-list');
+
+                // replace empty add list by old Add lists HTML
+                ind = 0;
+                for (let addList of addLists) {
+                    addList.innerHTML = oldAddLists[ind];
+                    ind++;
+                }
+                document.getElementById('loader').style.display = 'none';
+            }
         }
     };
     xhttp.open("POST", path_parent);
@@ -247,7 +286,7 @@ function saveElement(path_child) {
         }
         for (var j = 1; j < ths.length; j++) {
             var cell_label = ths[j].textContent;
-            var type = document.getElementById('data-' + child_classname + '-' + cell_label).getAttribute('data-type');
+            var type = element_rows[elements_saved][ind].cells[j].getElementsByTagName('P')[0].getAttribute('data-type');
             var cell_data = element_rows[elements_saved][ind].cells[j].textContent;
             if (type == "Simple image picker") {
                 cell_data = btoa(element_rows[elements_saved][ind].cells[j].getElementsByTagName('IMG')[0].getAttribute('src'));
@@ -269,6 +308,8 @@ function saveElement(path_child) {
                 document.getElementById('crud-progress-bar').style.width = progress.toFixed(2) + '%';
                 document.getElementById('crud-progress-bar').textContent = progress.toFixed(2) + '%';
                 if (nb_rows <= rows_saved) {
+                    var data = JSON.parse(xhttp.response);
+                    window.location.href = data['redirect_path'];
                     elements_saved++;
                     rows_saved = 0;
                 }
@@ -308,6 +349,7 @@ function loadModalEdit(classname, btn) {
         var labels = document.getElementsByTagName('LABEL');
         var ths = table.getElementsByTagName("th");
         var td;
+
         for (var i = 0; i < labels.length; i++) {
             if (labels[i].htmlFor != '') {
                 var elem = document.getElementById(labels[i].htmlFor);
@@ -316,7 +358,7 @@ function loadModalEdit(classname, btn) {
                     label = elem.label.textContent;
                     for (var j = 0; j < ths.length; j++) {
                         if (ths[j].textContent == label) {
-                            var val = tr.cells[j].textContent;
+                            var val = tr.cells[j].textContent.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim(); // remove large white spaces
                             switch (elem.getAttribute('data-type')) {
                                 case "Simple select":
                                     for (var k = 0; k < elem.options.length; k++) {
@@ -357,6 +399,7 @@ function loadModalEdit(classname, btn) {
 function initDataTables() {
     $('.datatable').DataTable({
         "destroy": true,
+        "pageLength": 5,
         "paging": true,
         "lengthChange": false,
         "searching": false,

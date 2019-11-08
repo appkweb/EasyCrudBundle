@@ -90,7 +90,6 @@ final class PhpClassCreator implements PhpClassCreatorInterface
         $annotations = [
             'Class ' . $crudDefinition->getClassName(),
             '',
-            '@ORM\Table(name="' . $crudDefinition->getEntityName() . '")',
             '@ORM\Entity(repositoryClass="' . 'App\Repository\\' . $crudDefinition->getClassName() . 'Repository' . '")',
             '@ORM\HasLifecycleCallbacks'
         ];

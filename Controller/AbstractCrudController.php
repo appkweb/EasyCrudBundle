@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is part of the Appkweb package.
  *
@@ -46,42 +45,37 @@ abstract class AbstractCrudController
     }
 
     /**
-     * @param Request $request
+     * @param string $classname
      * @return array
      * @throws \Exception
      */
-    protected function list()
+    protected function list(string $classname = '')
     {
-        $className = $this->request->get('classname', false);
-        if (!$className) {
-            throw new \Exception("Param classname is missing", 500);
-        }
-        $this->crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($className);
-        $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($className))
-            ->findBy([], [strtolower($this->crudDef->getReferrer()) => "ASC"]);
+        $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
+        $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))
+            ->findBy([], [strtolower($crudDef->getReferrer()) => "ASC"]);
 
         return [
             'list' => $list,
-            'crud_def' => $this->crudDef,
-            'page' => $this->request->get('page', $this->crudDef->getClassName() . '_list')
+            'crud_def' => $crudDef,
+            'page' => $this->request->get('page', $crudDef->getClassName() . '_list')
         ];
     }
 
     /**
-     * @param Request $request
+     * @param string $classname
+     * @param int|null $id
      * @return array
      */
-    protected function show()
+    protected function show(string $classname = '', int $id = null)
     {
-        $className = $request->get('classname', false);
-        $id = $request->get('id', false);
-        $this->crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($className);
-        $this->entity = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($className))->find($id);
-
+        if (!$id) throw new \InvalidArgumentException('Id is missing', 500);
+        $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
+        $entity = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))->find($id);
         return [
-            'crud_def' => $this->crudDef,
-            'entity' => $this->entity,
-            'page' => $request->get('page', $this->crudDef->getClassName() . '_list')
+            'crud_def' => $crudDef,
+            'entity' => $entity,
+            'page' => $this->request->get('page', $crudDef->getClassName() . '_list')
         ];
     }
 
@@ -93,14 +87,24 @@ abstract class AbstractCrudController
      */
     protected function remove(string $classname = '', int $id)
     {
-        if (!$id || $classname == '') {
-            throw new \Exception("Param id or classname is missing", 500);
-        }
+        if (!$id || $classname == '') throw new \Exception("Param id or classname is missing", 500);
         $entity = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))->find($id);
         if (!$entity) {
             $this->flash->add('error', 'Cette élément à déja été supprimé');
         } else {
             $crudDef = $this->getCrudDefinition($classname);
+            foreach ($crudDef->getAttributes() as $attr)
+            {
+                if ($attr->getType() == 'Add list')
+                {
+                    $datas = $entity->{'get' . ucwords($attr->getName())}();
+                    foreach ($datas as $data)
+                    {
+                        $this->manager->remove($data);
+                    }
+                    $this->manager->flush();
+                }
+            }
             $this->manager->remove($entity);
             $this->manager->flush();
             $this->flash->add('success', $crudDef->getLabel() . " supprimé avec succès");

@@ -56,12 +56,28 @@ class AddListController
     public function saveParent(Request $request)
     {
         $data = json_decode($request->get('data'), true);
+        $id = $data['id'];
+        $args['id'] = $id;
+        $status = false;
         $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($data['classname']);
-        $entity = $this->getEntityInstance($crudDef);
-        $this->hydrateObject($crudDef, $entity, $data);
-        $this->manager->persist($entity);
-        $this->manager->flush();
-        return new JsonResponse(['id' => $entity->getId()]);
+        $entity = $this->getEntityInstance($crudDef, $id);
+        $this->crudValidator->validate($crudDef, $data, $id);
+        if ($this->crudValidator->isValid()) {
+            if ($id) {
+                $this->removeChildEntitiesOf($crudDef, $id);
+            }
+            $status = true;
+            $this->hydrateObject($crudDef, $entity, $data);
+            $this->manager->persist($entity);
+            $this->manager->flush();
+            $args['id'] = $entity->getId();
+        } else {
+            $template = $this->getFormView($crudDef->getClassName(), false, $id, 'array');
+            $args['template'] = $template;
+        }
+        $args['status'] = $status;
+        $this->flash->add('success', $crudDef->getLabel() . ' mis à jour avec succès !');
+        return new JsonResponse($args);
     }
 
     /**
@@ -78,22 +94,33 @@ class AddListController
         $childEntity = $this->hydrateObject($crudDefChild, $childEntity, $data['row_datas'], $crudDefParent, $parentEntity);
         $this->manager->persist($childEntity);
         $this->manager->flush();
-        return new JsonResponse([true]);
+        return new JsonResponse(['redirect_path' => $this->route->generate('appkweb_easy_crud_list', ['classname' => $data['parent_classname']])]);
     }
 
     /**
-     * @param $classname
+     * @param string $classname
+     * @param string $parent_classname
+     * @param int|null $id
+     * @param bool $allow_actions
      * @return Response
      * @throws \ReflectionException
      * @throws \Twig\Error\LoaderError
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function getAddList($classname, $parent_classname)
+    public function getAddList(string $classname = '', string $parent_classname = '', int $id = null, bool $allow_actions = true)
     {
         $crud_def = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
-        $this->entity = $this->getEntityInstance($crud_def);
-        return new Response($this->template->render('@EasyCrud/add_list/add_list.html.twig', ['parent_classname' => $parent_classname, 'crud_def' => $crud_def]));
+        $parent_crud_def = $this->getCrudDefinition($parent_classname);
+        $list = $this->getEntityInstance($parent_crud_def, $id);
+        $attrName = '';
+        foreach ($parent_crud_def->getAttributes() as $attr) {
+            if ($attr->getEntityRelation() == $classname) {
+                $attrName = $attr->getName();
+            }
+        }
+        $list = $list->{'get' . ucwords($attrName)}();
+        return new Response($this->template->render('@EasyCrud/add_list/add_list.html.twig', ['allow_actions' => $allow_actions, 'parent_classname' => $parent_classname, 'crud_def' => $crud_def, 'list' => $list]));
     }
 
     /**
@@ -103,10 +130,8 @@ class AddListController
     public function validator(Request $request)
     {
         $data = json_decode($request->get('data'), true);
-        dump($data);
         $classname = $data["classname"];
         $parentClassanme = $data['parent_classname'];
-        dump($parentClassanme);
         $crudDef = $this->getCrudDefinition($classname);
         unset($data['classname']);
         $entity = $this->getEntityInstance($crudDef);

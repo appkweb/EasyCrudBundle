@@ -7,17 +7,23 @@
         <div>
             <div class="col-md-11 center">
                 <div class="text-center space">
-                    <div  id="path-edit-modal" style="display: none">{{ path('appkweb_easy_crud_add_list_modal_json',{classname:crud_def.className,parent_classname:parent_classname}) }}</div>
-                    <button onclick="getFormModal('{{ crud_def.className }}')"
-                            type="button" class="btn btn-default">
-                        <span style="display: none" id="loader-new" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Ajouter {{ crud_def.label }}  </button>
+                    <div id="path-edit-modal"
+                         style="display: none">{{ path('appkweb_easy_crud_add_list_modal_json',{classname:crud_def.className,parent_classname:parent_classname}) }}</div>
+                    {% if allow_actions %}
+                        <button onclick="getFormModal('{{ crud_def.className }}')"
+                                type="button" class="btn btn-default">
+                        <span style="display: none" id="loader-new" class="spinner-border spinner-border-sm"
+                              role="status" aria-hidden="true"></span> Ajouter {{ crud_def.label }}  </button>
+                    {% endif %}
                 </div>
 
                 <table id="{{ crud_def.className ~ '-dataTable' }}"
                        class="table table-bordered table-hover text-center datatable">
                     <thead>
 
-                    <th>Actions</th>
+                    {% if allow_actions == true %}
+                        <th>Actions</th>
+                    {% endif %}
                     {% for attribute in crud_def.attributes %}
                         {% if attribute.entityRelation != parent_classname and attribute.type != "Add list" %}
                             <th>{{ attribute.label | capitalize }}</th>
@@ -25,6 +31,33 @@
                     {% endfor %}
                     </thead>
                     <tbody>
+                    {% for data in list %}
+                        <tr>
+                            {% if allow_actions %}
+                                <td class="text-center">
+                                    <div class="text-center">
+                                        <button type="button" onclick="loadModalEdit('{{ crud_def.className }}',this)"
+                                                class="btn btn-default"><span style="display: none"
+                                                                              class="loader-edit spinner-border spinner-border-sm"
+                                                                              role="status"
+                                                                              aria-hidden="true"></span><span
+                                                    class="fa fa-edit"></span></button>
+                                        <button type="button" onclick="removeRow('{{ crud_def.className }}',this)"
+                                                style="margin-left: 5px" class="remove btn btn-danger"><span
+                                                    class="fa fa-trash"></span></button>
+                                    </div>
+
+                                </td>
+                            {% endif %}
+                            {% for attribute in crud_def.attributes %}
+                                {% if attribute.entityRelation != parent_classname and attribute.type != "Add list" %}
+                                    <td class='text-center'>
+                                        <p data-type="{{ attribute.type }}">{{ attribute(data, attribute.name) }}</p>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>

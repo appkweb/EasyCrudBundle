@@ -43,17 +43,11 @@ use Twig\Environment;
  */
 trait CrudTrait
 {
-    protected $entity;
-
     /**
      * @var FormInterface
      */
     protected $form;
 
-    /**
-     * @var CrudDefinition
-     */
-    protected $crudDef;
 
     /**
      * @var Environment
@@ -146,14 +140,32 @@ trait CrudTrait
                 'parent_classname' => $parent_classname,
                 'form' => $this->form->createView(),
                 'crud_def' => $crudDef,
-                'errors' => $errors
+                'errors' => $errors,
+                'id' => $id
             ]
         );
         if ($formatResponse == 'json') {
             return new Response($view);
         }
-
         return $view;
+    }
+
+    /**
+     * @param string $classname
+     * @param int|null $id
+     * @return Response
+     * @throws \ReflectionException
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    public function getPrintView(string $classname = '', int $id = null)
+    {
+        if (!$id) throw new \InvalidArgumentException('id params is missing !', 500);
+        $crudDef = $this->getCrudDefinition($classname);
+        $entity = $this->getEntityInstance($crudDef, $id);
+        $view = $this->template->render('@EasyCrud/crud/print_view.html.twig', ['crud_def' => $crudDef, 'entity' => $entity]);
+        return new Response($view);
     }
 
     /**
@@ -210,7 +222,7 @@ trait CrudTrait
                 $entity->{'set' . ucwords($attribute->getName())}($parentEntity);
             } else {
                 if (array_key_exists($descriptor, $datas)) {
-                    $data = $datas[$descriptor];
+                    $data = trim(preg_replace('/\s+/', ' ', $datas[$descriptor]));
                     switch ($attribute->getType()) {
                         case 'Simple image picker' :
                             $oldFile = $entity->{'get' . ucwords($attribute->getName())}();
@@ -279,6 +291,32 @@ trait CrudTrait
             return $this->manager->getRepository(CrudHelper::getAbsoluteClassName($crudDef->getClassName()))->find($id);
         } else {
             return CrudHelper::getNewInstanceOf($crudDef->getClassName());
+        }
+    }
+
+    /**
+     * @param CrudDefinition $crudDefinition
+     * @param int|null $id
+     * @throws \ReflectionException
+     */
+    public function removeChildEntitiesOf(CrudDefinition $crudDefinition, int $id = null): void
+    {
+        $entity = $this->getEntityInstance($crudDefinition, $id);
+        foreach ($crudDefinition->getAttributes() as $attr) {
+            if ($attr->getType() == 'Add list') {
+                $childCrudDef = $this->getCrudDefinition($attr->getEntityRelation());
+                $referer = '';
+                foreach ($childCrudDef->getAttributes() as $childAttr) {
+                    if ($childAttr->getEntityRelation() == $crudDefinition->getClassName()) {
+                        $referer = $childAttr->getName();
+                    }
+                }
+                $entities = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($childCrudDef->getClassName()))->findBy([$referer => $entity]);
+                foreach ($entities as $obj) {
+                    $this->manager->remove($obj);
+                }
+                $this->manager->flush();
+            }
         }
     }
 }

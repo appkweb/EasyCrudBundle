@@ -12,10 +12,11 @@
         {{ include('@EasyCrud/include/base_js.html.twig') }}
         <script>
             $(function () {
-                $('#datatable').DataTable({
+                $('.datatable').DataTable({
                     "paging": true,
+                    "pageLength": 5,
                     "lengthChange": false,
-                    "searching": false,
+                    "searching": true,
                     "ordering": true,
                     "info": true,
                     "autoWidth": false,

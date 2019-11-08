@@ -55,6 +55,18 @@ function getEntityData() {
     var show = document.getElementById("entity_def_show").checked;
     var attributes = [];
     var myTab = document.getElementById('datatable');
+    var tab = $('#dataTable').DataTable();
+    var rows = tab.$('tr');
+
+    Object.size = function (obj) {
+        var size = 0, key;
+        for (key in obj) {
+            if (obj.hasOwnProperty(key)) size++;
+        }
+        return size - 1;
+    };
+    var size = Object.size(rows);
+
     var oldClassname = document.getElementById('old-classname');
     if (oldClassname) {
         oldClassname = oldClassname.textContent
@@ -62,10 +74,10 @@ function getEntityData() {
         oldClassname = false;
     }
 
-    for (i = 1; i < myTab.rows.length; i++) {
-        var objCells = myTab.rows.item(i).cells;
-        var entity_relation = objCells.item(3).textContent.split('Entity linked : ')
-        attr_type = objCells.item(3).textContent;
+    for (i = 1; i < size; i++) {
+        var objCells = rows[i].$('td');
+        var entity_relation = objCells[3].textContent.split('Entity linked : ')
+        attr_type = objCells[3].textContent;
         if (entity_relation.length > 1) {
             attr_type = entity_relation[0]
             entity_relation = entity_relation[1]
@@ -73,15 +85,15 @@ function getEntityData() {
             entity_relation = false;
         }
         cell = {
-            attr_name: objCells.item(1).textContent,
-            attr_label: objCells.item(2).textContent,
+            attr_name: objCells[1].textContent,
+            attr_label: objCells[2].textContent,
             attr_type: attr_type,
-            attr_list: objCells.item(4).textContent,
-            attr_edit: objCells.item(5).textContent,
-            attr_show: objCells.item(6).textContent,
-            attr_nullable: objCells.item(7).textContent,
-            attr_unique: objCells.item(8).textContent,
-            attr_order: objCells.item(9).textContent,
+            attr_list: objCells[4].textContent,
+            attr_edit: objCells[5].textContent,
+            attr_show: objCells[6).textContent,
+            attr_nullable: objCells[7].textContent,
+            attr_unique: objCells[8].textContent,
+            attr_order: objCells[9].textContent,
             attr_entity_relation: entity_relation,
         }
         attributes.push(cell);

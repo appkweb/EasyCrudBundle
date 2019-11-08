@@ -12,7 +12,7 @@
             <ul class="nav nav-treeview">
                 {% if entity.list == true %}
                     <li class="nav-item">
-                        <a href="{{ path('appkweb_easy_crud_list',{classname:entity.className|lower }) }}"
+                        <a href="{{ path('appkweb_easy_crud_list',{classname:entity.className }) }}"
                            class="{% if page == entity.classname ~ "_list" %}active{% endif %} nav-link">
                             <i class="fa fa-list nav-icon"></i>
                             <p>Liste</p>
@@ -21,7 +21,7 @@
                 {% endif %}
                 {% if entity.add == true %}
                     <li class="nav-item">
-                        <a href="{{ path('appkweb_easy_crud_add',{classname:entity.className|lower }) }}"
+                        <a href="{{ path('appkweb_easy_crud_add',{classname:entity.className }) }}"
                            class="{% if page == entity.classname ~ "_add" %}active{% endif %} nav-link">
                             <i class="far fa fa-plus nav-icon"></i>
                             <p>Ajouter</p>

@@ -28,7 +28,7 @@ function save(e, path) {
         if (this.readyState == 4 && this.status == 200) {
             document.getElementById('loader-bar').style.display = "none";
             var data = JSON.parse(xhttp.response);
-            location.href = data.location;
+            // location.href = data.location;
         }
     };
     xhttp.open("POST", path, true);
@@ -55,8 +55,8 @@ function getEntityData() {
     var show = document.getElementById("entity_def_show").checked;
     var attributes = [];
     var myTab = document.getElementById('datatable');
-    var tab = $('#dataTable').DataTable();
-    var rows = tab.$('tr');
+    var tab = $("#datatable").DataTable();
+    var rows = tab.$("tr");
 
     Object.size = function (obj) {
         var size = 0, key;
@@ -65,17 +65,19 @@ function getEntityData() {
         }
         return size - 1;
     };
-    var size = Object.size(rows);
+    
 
+
+    var size = Object.size(rows);
+    console.log(size);
     var oldClassname = document.getElementById('old-classname');
     if (oldClassname) {
         oldClassname = oldClassname.textContent
     } else {
         oldClassname = false;
     }
-
-    for (i = 1; i < size; i++) {
-        var objCells = rows[i].$('td');
+    for (i = 0; i < size; i++) {
+        var objCells = rows[i].cells;
         var entity_relation = objCells[3].textContent.split('Entity linked : ')
         attr_type = objCells[3].textContent;
         if (entity_relation.length > 1) {
@@ -98,6 +100,7 @@ function getEntityData() {
         }
         attributes.push(cell);
     }
+    console.log(attributes);
 
     var strData = '&className=' + className
         + '&oldClassName=' + oldClassname

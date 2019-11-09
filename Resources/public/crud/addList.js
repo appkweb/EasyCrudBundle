@@ -191,7 +191,7 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
                 for (key in obj) {
                     if (obj.hasOwnProperty(key)) size++;
                 }
-                return size - 1;
+                return size - 1;        
             };
             var size = Object.size(rows);
             if (size > 0) {

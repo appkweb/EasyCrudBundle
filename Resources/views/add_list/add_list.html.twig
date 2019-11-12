@@ -13,7 +13,7 @@
                         <button onclick="getFormModal('{{ crud_def.className }}')"
                                 type="button" class="btn btn-default">
                         <span style="display: none" id="loader-new" class="spinner-border spinner-border-sm"
-                              role="status" aria-hidden="true"></span> Ajouter {{ crud_def.label }}  </button>
+                              role="status" aria-hidden="true"></span> Ajouter {{ crud_def.singularLabel | lower }}  </button>
                     {% endif %}
                 </div>
 

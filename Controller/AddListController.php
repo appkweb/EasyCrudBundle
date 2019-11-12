@@ -120,6 +120,7 @@ class AddListController
             }
         }
         $list = $list->{'get' . ucwords($attrName)}();
+
         return new Response($this->template->render('@EasyCrud/add_list/add_list.html.twig', ['allow_actions' => $allow_actions, 'parent_classname' => $parent_classname, 'crud_def' => $crud_def, 'list' => $list]));
     }
 

@@ -90,12 +90,18 @@ function formInitJs() {
     })
 }
 
+
 /**
  *
  * @param form
  * @param e
  */
 function saveNew(form, e) {
+    const capitalize = (s) => {
+        if (typeof s !== 'string') return ''
+        return s.charAt(0).toUpperCase() + s.slice(1)
+    }
+
     e.preventDefault();
     validator(class_name, form, function () {
         var id = '#' + class_name + '-dataTable';
@@ -136,7 +142,7 @@ function saveNew(form, e) {
                     var is_file = false;
                     for (var j = 0; j < ths.length; j++) {
                         var is_img = false;
-                        if (ths[j].innerText === label) {
+                        if (capitalize(ths[j].innerText.toLowerCase()) === label) {
                             switch (elem.getAttribute('data-type')) {
                                 case "TinyMce":
                                     data = tinyMCE.get(elem.getAttribute('id')).save();
@@ -156,6 +162,7 @@ function saveNew(form, e) {
                 }
             }
         }
+
         dataTable.row.add(row);
         dataTable.draw();
         if (global_is_edit) {
@@ -191,7 +198,7 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
                 for (key in obj) {
                     if (obj.hasOwnProperty(key)) size++;
                 }
-                return size - 1;        
+                return size - 1;
             };
             var size = Object.size(rows);
             if (size > 0) {

@@ -11,6 +11,8 @@ var nb_image = 0;
 var nb_image_callback = 0;
 var global_is_edit = false;
 var current_row_edited;
+var call_back_submit = false;
+var call_back_error_validator = false;
 
 
 (function () {
@@ -101,7 +103,6 @@ function saveNew(form, e) {
         if (typeof s !== 'string') return ''
         return s.charAt(0).toUpperCase() + s.slice(1)
     }
-
     e.preventDefault();
     validator(class_name, form, function () {
         var id = '#' + class_name + '-dataTable';
@@ -162,15 +163,14 @@ function saveNew(form, e) {
                 }
             }
         }
-
         dataTable.row.add(row);
         dataTable.draw();
         if (global_is_edit) {
             removeRow(class_name, current_row_edited);
         }
         $('#myModal').modal('hide');
-    });
 
+    });
 }
 
 /**
@@ -182,7 +182,9 @@ function saveNew(form, e) {
  * @returns {boolean}
  */
 function submitAddListsIfExist(e, form, parent_classname, path_parent, path_child) {
+    resetVars();
     class_name = parent_classname;
+    var stop  = true;
     var addLists = document.getElementsByClassName('add-list');
     var elements = [];
     if (addLists.length > 0) {
@@ -191,6 +193,14 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
             var table_id = addLists[i].getElementsByClassName('datatable')[0].getAttribute('id');
             var table = $('#' + table_id).DataTable();
             var rows = table.$("tr");
+            if (rows.length == 0)
+            {
+                stop = false;
+                alert('yo');
+                saveParent(parent_classname, path_parent, path_child, form, function (data) {
+                    call_back_submit(data);
+                });
+            }
             element_rows.push([addLists[i].getElementsByClassName('datatable')[0]]);
             nbElements++;
             Object.size = function (obj) {
@@ -209,11 +219,13 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
                 }
             }
         }
-
-        saveParent(parent_classname, path_parent, path_child, form, function () {
-            document.getElementById('loader').style.display = 'block';
-            saveElement(path_child);
-        });
+        if (stop)
+        {
+            saveParent(parent_classname, path_parent, path_child, form, function () {
+                document.getElementById('loader').style.display = 'block';
+                saveElement(path_child);
+            });
+        }
     }
 }
 
@@ -226,7 +238,6 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
  */
 function saveParent(parent_classname, path_parent, path_child, form, callback) {
     parent_id = document.getElementById('form-row').getAttribute('data-id');
-
     if (parent_id === '') {
         parent_id = false;
     }
@@ -242,14 +253,13 @@ function saveParent(parent_classname, path_parent, path_child, form, callback) {
             }
         }
     }
-
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             var data = JSON.parse(xhttp.response);
             if (data.status == true) {
                 parent_id = data.id;
-                callback();
+                callback(data);
             } else {
                 // keep old add Lists html
                 var oldAddLists = [];
@@ -268,12 +278,29 @@ function saveParent(parent_classname, path_parent, path_child, form, callback) {
                     ind++;
                 }
                 document.getElementById('loader').style.display = 'none';
+                if (call_back_error_validator) {
+                    call_back_error_validator();
+                }
             }
+
         }
     };
     xhttp.open("POST", path_parent);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send("data=" + JSON.stringify(postData));
+}
+
+function resetVars() {
+    nbElements = 0;
+    elements_saved = 0;
+    rows_saved = 0;
+    nb_rows = 0;
+    element_rows = [];
+    progress = 0;
+    ind_progress = 0;
+    nb_image = 0;
+    nb_image_callback = 0;
+    current_row_edited;
 }
 
 
@@ -316,7 +343,11 @@ function saveElement(path_child) {
                 document.getElementById('crud-progress-bar').textContent = progress.toFixed(2) + '%';
                 if (nb_rows <= rows_saved) {
                     var data = JSON.parse(xhttp.response);
-                    window.location.href = data['redirect_path'];
+                    if (!call_back_submit) {
+                        window.location.href = data['redirect_path'];
+                    } else {
+                        call_back_submit(data);
+                    }
                     elements_saved++;
                     rows_saved = 0;
                 }
@@ -356,7 +387,6 @@ function loadModalEdit(classname, btn) {
         var labels = document.getElementsByTagName('LABEL');
         var ths = table.getElementsByTagName("th");
         var td;
-
         for (var i = 0; i < labels.length; i++) {
             if (labels[i].htmlFor != '') {
                 var elem = document.getElementById(labels[i].htmlFor);
@@ -402,6 +432,7 @@ function loadModalEdit(classname, btn) {
         loader.hide();
     }, true);
 }
+
 
 function initDataTables() {
     $('.datatable').DataTable({

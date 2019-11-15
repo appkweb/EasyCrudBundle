@@ -3,7 +3,7 @@
         {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname,'id':entity.id,'allow_actions':false})) }}
     {% else %}
         <div class="col-md-6 center">
-            <strong>{{ attribute.label }} : </strong> {{ attribute(entity, attribute.name) }}
+            <strong>{{ attribute.label }} : </strong> {% if attribute.type == "Date picker" %}{{ attribute(entity, attribute.name) | date('d/m/Y') }}{% else %}{{ attribute(entity, attribute.name) }}{% endif %}
         </div>
     {% endif %}
 {% endfor %}

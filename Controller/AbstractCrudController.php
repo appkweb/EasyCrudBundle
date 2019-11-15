@@ -53,7 +53,7 @@ abstract class AbstractCrudController
     {
         $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
         $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))
-            ->findBy([], [strtolower($crudDef->getReferrer()) => "ASC"]);
+            ->findBy([], [$crudDef->getReferrer() => "ASC"]);
 
         return [
             'list' => $list,

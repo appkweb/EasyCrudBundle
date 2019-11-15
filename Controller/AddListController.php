@@ -94,7 +94,7 @@ class AddListController
         $childEntity = $this->hydrateObject($crudDefChild, $childEntity, $data['row_datas'], $crudDefParent, $parentEntity);
         $this->manager->persist($childEntity);
         $this->manager->flush();
-        return new JsonResponse(['redirect_path' => $this->route->generate('appkweb_easy_crud_list', ['classname' => $data['parent_classname']])]);
+        return new JsonResponse(['parent_id' => $parentEntity->getId(),  'redirect_path' => $this->route->generate('appkweb_easy_crud_list', ['classname' => $data['parent_classname']])]);
     }
 
     /**

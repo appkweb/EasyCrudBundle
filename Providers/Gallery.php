@@ -110,7 +110,7 @@ class Gallery implements GalleryInterface
     {
         $this->ind ++;
         $date = new \DateTime('now');
-        return $date->format('d-m-Y-hh-ii-ss-') . $this->ind . '.' . $extension;
+        return $date->format('d-m-Y-hh-ii-ss-') . $this->ind . uniqid('', true).  '.' . $extension;
     }
 
     /**

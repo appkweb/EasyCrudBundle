@@ -14,11 +14,21 @@
 
 namespace Appkweb\Bundle\EasyCrudBundle\Controller;
 
+use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
+use Appkweb\Bundle\EasyCrudBundle\Providers\GalleryInterface;
 use Appkweb\Bundle\EasyCrudBundle\Traits\CrudTrait;
+use Appkweb\Bundle\EasyCrudBundle\Validator\CrudValidatorInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
+use Twig\Environment;
 
 /**
  * Class AddListController
@@ -94,7 +104,7 @@ class AddListController
         $childEntity = $this->hydrateObject($crudDefChild, $childEntity, $data['row_datas'], $crudDefParent, $parentEntity);
         $this->manager->persist($childEntity);
         $this->manager->flush();
-        return new JsonResponse(['parent_id' => $parentEntity->getId(),  'redirect_path' => $this->route->generate('appkweb_easy_crud_list', ['classname' => $data['parent_classname']])]);
+        return new JsonResponse(['parent_id' => $parentEntity->getId(), 'redirect_path' => $this->route->generate('appkweb_easy_crud_list', ['classname' => $data['parent_classname']])]);
     }
 
     /**
@@ -143,6 +153,15 @@ class AddListController
             return new JsonResponse(['status' => $status, 'template' => $view]);
         }
         return new JsonResponse(['status' => $status]);
+    }
+
+    public function getImgBlob($filename)
+    {
+        $path = $this->kernel->getProjectDir() . '/public/default_media/' . $filename;
+        $type = pathinfo($path, PATHINFO_EXTENSION);
+        $data = file_get_contents($path);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        return new Response($base64);
     }
 
 }

@@ -13,7 +13,8 @@
                         <button onclick="getFormModal('{{ crud_def.className }}')"
                                 type="button" class="btn btn-default">
                         <span style="display: none" id="loader-new" class="spinner-border spinner-border-sm"
-                              role="status" aria-hidden="true"></span> Ajouter {{ crud_def.singularLabel | lower }}  </button>
+                              role="status" aria-hidden="true"></span> Ajouter {{ crud_def.singularLabel | lower }}
+                        </button>
                     {% endif %}
                 </div>
 
@@ -51,9 +52,17 @@
                             {% endif %}
                             {% for attribute in crud_def.attributes %}
                                 {% if attribute.entityRelation != parent_classname and attribute.type != "Add list" %}
-                                    <td class='text-center'>
-                                        <p data-type="{{ attribute.type }}">{{ attribute(data, attribute.name) }}</p>
-                                    </td>
+                                    {% if attribute.type != "Simple image picker" %}
+                                        <td class='text-center'>
+                                            <p data-type="{{ attribute.type }}">{{ attribute(data, attribute.name) }}</p>
+                                        </td>
+                                    {% else %}
+                                        <td class="text-center">
+                                            <p data-type="{{ attribute.type }}"><img id="preview-{{ data.id }}"
+                                                        src=" {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getImgBlob', {'filename':  attribute(data, attribute.name) })) }}
+         "></p>
+                                        </td>
+                                    {% endif %}
                                 {% endif %}
                             {% endfor %}
                         </tr>

@@ -112,7 +112,7 @@ trait ConstraintsTrait
     {
         if ($this->value)
         {
-            if ($this->type == 'Simple image picker' && $this->value->getMimeType() != 'image/jpeg' && $this->value->getMimeType() != 'image/png' && $this->value != '') {
+            if ($this->type == 'Simple image picker' && !is_string($this->value) &&  $this->value->getMimeType() != 'image/jpeg' && $this->value->getMimeType() != 'image/png' && $this->value != '') {
                 $this->errors[$this->attributeDefinition->getName()]['img_file_format'] = CrudValidator::FIELD_FORBIDEN_FILE_FORMAT_MSG;
             }
         }

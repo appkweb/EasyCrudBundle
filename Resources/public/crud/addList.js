@@ -417,8 +417,8 @@ function loadModalEdit(classname, btn) {
                                     div.appendChild(content);
                                     preview.src = blob;
                                     preview.style = "margin: 0 15px !important;width:100px";
-                                    wrapper.append(div)
-                                    wrapper.append(preview)
+                                    wrapper.append(div);
+                                    wrapper.append(preview);
                                     elem.after(wrapper);
                                     break;
                                 default:

@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Templating\EngineInterface;
@@ -47,6 +48,11 @@ trait CrudTrait
      * @var FormInterface
      */
     protected $form;
+
+    /**
+     * @var KernelInterface
+     */
+    private $kernel;
 
 
     /**
@@ -95,7 +101,7 @@ trait CrudTrait
     protected $crudValidator;
 
 
-    public function __construct(CrudValidatorInterface $crudValidator, RequestStack $requestStack, Environment $template, FlashBagInterface $flash, GalleryInterface $gallery, RouterInterface $route, EntityManagerInterface $entityManager, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory)
+    public function __construct(KernelInterface $kernel, CrudValidatorInterface $crudValidator, RequestStack $requestStack, Environment $template, FlashBagInterface $flash, GalleryInterface $gallery, RouterInterface $route, EntityManagerInterface $entityManager, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory)
     {
         $this->crudValidator = $crudValidator;
         $this->template = $template;
@@ -106,6 +112,7 @@ trait CrudTrait
         $this->route = $route;
         $this->gallery = $gallery;
         $this->request = $requestStack->getMasterRequest();
+        $this->kernel = $kernel;
     }
 
     /**
@@ -121,7 +128,8 @@ trait CrudTrait
      * @param string $classname
      * @param bool $parent_classname
      * @param bool $id
-     * @return Response
+     * @param string $formatResponse
+     * @return string|Response
      * @throws \ReflectionException
      * @throws \Twig\Error\LoaderError
      * @throws \Twig\Error\RuntimeError

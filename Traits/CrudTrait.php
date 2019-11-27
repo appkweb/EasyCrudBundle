@@ -252,7 +252,7 @@ trait CrudTrait
                             if (is_string($data)) {
                                 $crud = $this->getCrudDefinition($attribute->getEntityRelation());
                                 $referer = $crud->getReferrer();
-                                $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy(['id' => $data]);
+                                $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
                             }
                             break;
                     }

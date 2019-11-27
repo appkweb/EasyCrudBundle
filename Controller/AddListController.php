@@ -82,7 +82,9 @@ class AddListController
             $this->manager->flush();
             $args['id'] = $entity->getId();
         } else {
-            $template = $this->getFormView($crudDef->getClassName(), false, $id, 'array');
+            $data = $request->get('data',[]);
+            if ($data != []) $data = json_decode($data,true);
+            $template = $this->getFormView($crudDef->getClassName(), false, $id, 'array',$data);
             $args['template'] = $template;
         }
         $args['status'] = $status;

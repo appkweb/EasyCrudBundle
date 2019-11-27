@@ -135,14 +135,18 @@ trait CrudTrait
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json')
+    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json', $data = [])
     {
         $crudDef = $this->getCrudDefinition($classname);
         $entity = $this->getEntityInstance($crudDef, $id);
         if (!$classname) throw new \Exception('Classname param is missing !', 500);
-        $this->form = $this->getForm($crudDef, $entity);
+        $this->form = $this->getForm($crudDef, $entity, $data);
         $this->handleFormSubmit($crudDef, $entity); // If form is submitted
         $errors = $this->crudValidator->getErrors();
+//        if (!$this->crudValidator->isValid())
+//        {
+//            $this->form->setData($data);
+//        }
         $view = $this->template->render('@EasyCrud/crud/form_view.html.twig',
             [
                 'parent_classname' => $parent_classname,
@@ -238,7 +242,7 @@ trait CrudTrait
                                 $this->gallery->remove($oldFile);
                             }
                             if ($data) {
-                                $data = $this->gallery->upload($data);
+                                $data = $this->gallery->upload($datas[$descriptor]);
                             }
                             break;
                         case 'Date picker' :
@@ -264,17 +268,20 @@ trait CrudTrait
      * @param $entity
      * @return FormInterface
      */
-    protected function getForm(CrudDefinition $crudDef, $entity): FormInterface
+    protected function getForm(CrudDefinition $crudDef, $entity, $data = []): FormInterface
     {
-        foreach ($crudDef->getAttributes() as $attr) {
-            $attrData = $entity->{'get' . ucwords($attr->getName())}();
-            if ($attrData) {
-                if ($attr->getType() == 'Date picker') {
-                    $attrData = $attrData->format('d/m/Y');
+        if ($data == []) {
+            foreach ($crudDef->getAttributes() as $attr) {
+                $attrData = $entity->{'get' . ucwords($attr->getName())}();
+                if ($attrData) {
+                    if ($attr->getType() == 'Date picker') {
+                        $attrData = $attrData->format('d/m/Y');
+                    }
+                    $data[$attr->getName()] = $attrData;
                 }
-                $data[$attr->getName()] = $attrData;
             }
         }
+
         $data['crud_def'] = $crudDef;
         return $this->formFactory->create(CrudMakerType::class, $data);
     }

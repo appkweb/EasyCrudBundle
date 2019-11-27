@@ -191,12 +191,12 @@ function submitAddListsIfExist(e, form, parent_classname, path_parent, path_chil
         e.preventDefault();
         for (var i = 0; i < addLists.length; i++) {
             var table_id = addLists[i].getElementsByClassName('datatable')[0].getAttribute('id');
+            console.log(table_id);
             var table = $('#' + table_id).DataTable();
             var rows = table.$("tr");
             if (rows.length == 0)
             {
                 stop = false;
-                alert('yo');
                 saveParent(parent_classname, path_parent, path_child, form, function (data) {
                     call_back_submit(data);
                 });

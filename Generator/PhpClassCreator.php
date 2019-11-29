@@ -320,7 +320,7 @@ final class PhpClassCreator implements PhpClassCreatorInterface
                 $data[] = '     ,maxSize= "1024k",maxSizeMessage = "Veuillez selectionner une image moins volumineuse (1 Mo maximum)"';
                 $data[] = '     )';
                 break;
-            case $type === "Simple select":
+            case $type === "Simple select" || $type === "Section":
                 if ($related) {
                     $data[] = "@ORM\ManyToOne(targetEntity=\"App\Entity\\$entityRelation\",inversedBy=\"$related\")";
                 } else {

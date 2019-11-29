@@ -29,7 +29,7 @@
                     <tr>
                         <th>Actions</th>
                         {% for attribute in crud_def.attributes %}
-                            {% if attribute.type != "Add list" and attribute.entityRelation != crud_def.className %}
+                            {% if attribute.type != "Add list" and attribute.type != "Section" and attribute.entityRelation != crud_def.className %}
                                 <th>{{ attribute.label | capitalize }}</th>
                             {% endif %}
                         {% endfor %}
@@ -50,7 +50,7 @@
                                             class="fa fa-trash"></span></a>
                             </td>
                             {% for attribute in crud_def.attributes %}
-                            {% if attribute.type != "Add list" and attribute.entityRelation != crud_def.className %}
+                            {% if attribute.type != "Add list" and attribute.type != "Section" and attribute.entityRelation != crud_def.className %}
                                 <td>
                                         {% if attribute.type == "TinyMce" %}
                                             {{ attribute(entity, attribute.name) | raw }}

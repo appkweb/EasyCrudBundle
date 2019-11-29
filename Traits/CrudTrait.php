@@ -135,7 +135,7 @@ trait CrudTrait
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json', $data = [])
+    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json', $data = [], $onlyAttribute = false)
     {
         $crudDef = $this->getCrudDefinition($classname);
         $entity = $this->getEntityInstance($crudDef, $id);
@@ -143,13 +143,10 @@ trait CrudTrait
         $this->form = $this->getForm($crudDef, $entity, $data);
         $this->handleFormSubmit($crudDef, $entity); // If form is submitted
         $errors = $this->crudValidator->getErrors();
-//        if (!$this->crudValidator->isValid())
-//        {
-//            $this->form->setData($data);
-//        }
         $view = $this->template->render('@EasyCrud/crud/form_view.html.twig',
             [
                 'parent_classname' => $parent_classname,
+                'only_attr' => $onlyAttribute,
                 'form' => $this->form->createView(),
                 'crud_def' => $crudDef,
                 'errors' => $errors,
@@ -224,6 +221,7 @@ trait CrudTrait
      */
     protected function hydrateObject(CrudDefinition $crudDef, $entity, array $datas, CrudDefinition $parentCrudDef = null, $parentEntity = false)
     {
+        $section = [];
         if ($parentCrudDef && !$parentEntity || $parentEntity && !$parentCrudDef) {
             throw new \Exception("Error ! if you transmit a parent you need 2 params (Entity and CrudDefiniton of it)", 500);
         }
@@ -233,7 +231,15 @@ trait CrudTrait
             if ($parentCrudDef && $attribute->getEntityRelation() == $parentCrudDef->getClassName()) { // if we hydrate AddList
                 $entity->{'set' . ucwords($attribute->getName())}($parentEntity);
             } else {
-                if (array_key_exists($descriptor, $datas)) {
+                if ($attribute->getType() == 'Section') {
+                    $crud = $this->getCrudDefinition($attribute->getEntityRelation());
+                    $referer = $crud->getReferrer();
+                    $instance = $this->getEntityInstance($crud, $entity->{'get' . ucwords($attribute->getName())}());
+                    $data = $this->hydrateObject($crud, $instance, $datas);
+                    $this->manager->persist($data);
+                    $entity->{'set' . ucwords($attribute->getName())}($data);
+                }
+                if (array_key_exists($descriptor, $datas) ) {
                     $data = trim(preg_replace('/\s+/', ' ', $datas[$descriptor]));
                     switch ($attribute->getType()) {
                         case 'Simple image picker' :
@@ -258,6 +264,7 @@ trait CrudTrait
                     }
                     $entity->{'set' . ucwords($attribute->getName())}($data);
                 }
+
             }
         }
         return $entity;

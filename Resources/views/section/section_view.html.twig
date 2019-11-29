@@ -1,0 +1,15 @@
+<div data-current="{{ parent_classname }}" id="current-{{ crud_def.className }}"
+     class="card col-md-11 center section no-padding space ">
+    <div style="background-color: #DDDDDD" class="card-header">
+        <h3>{{ crud_def.label }}</h3>
+    </div>
+    <div class="card-body">
+        <div>
+            <div class="col-md-11 center">
+                {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getFormView',{'onlyAttribute':true,'classname': crud_def.className,'id':id})) }}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+

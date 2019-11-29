@@ -42,10 +42,14 @@ class CrudValidator implements CrudValidatorInterface
      */
     public function validate(CrudDefinition $crudDefinition, array $data = [], int $id = null, bool $checkUnique = true)
     {
-        $this->crudDef = $crudDefinition;
         $this->id = $id;
         foreach ($crudDefinition->getAttributes() as $attribute) {
+            if ($attribute->getType() == "Section") { // valid fields of section type
+                $crudDefSection = $this->yamlCrudTranslator->getCrudDefByClassName($attribute->getEntityRelation());
+                $this->validate($crudDefSection, $data, null, false);
+            }
             if (array_key_exists($attribute->getName(), $data)) {
+                $this->crudDef = $crudDefinition;
                 $this->value = $data[$attribute->getName()];
                 $this->type = $attribute->getType();
                 $this->attributeDefinition = $attribute;
@@ -60,6 +64,7 @@ class CrudValidator implements CrudValidatorInterface
             }
         }
     }
+
 
     /**
      * @return array

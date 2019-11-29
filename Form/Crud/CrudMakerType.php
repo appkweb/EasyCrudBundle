@@ -56,7 +56,7 @@ class CrudMakerType extends AbstractType
                     $args['attr']['class'] = "datepicker form-control";
                     break;
             }
-            if ($attribute->getType() != "Add list") {
+            if ($attribute->getType() != "Add list" && $attribute->getType() != "Section") {
                 $builder->add($attribute->getName(), CrudHelper::getStrFormType($attribute), $args);
             }
         }

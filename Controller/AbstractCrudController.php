@@ -52,8 +52,10 @@ abstract class AbstractCrudController
     protected function list(string $classname = '')
     {
         $crudDef = $this->yamlCrudTranslator->getCrudDefByClassName($classname);
+        $referer = $crudDef->getReferrer();
+        if ($referer == "Id") $referer = "id";
         $list = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($classname))
-            ->findBy([], [$crudDef->getReferrer() => "ASC"]);
+            ->findBy([], [$referer => "ASC"]);
 
         return [
             'list' => $list,
@@ -93,13 +95,10 @@ abstract class AbstractCrudController
             $this->flash->add('error', 'Cette élément à déja été supprimé');
         } else {
             $crudDef = $this->getCrudDefinition($classname);
-            foreach ($crudDef->getAttributes() as $attr)
-            {
-                if ($attr->getType() == 'Add list')
-                {
+            foreach ($crudDef->getAttributes() as $attr) {
+                if ($attr->getType() == 'Add list') {
                     $datas = $entity->{'get' . ucwords($attr->getName())}();
-                    foreach ($datas as $data)
-                    {
+                    foreach ($datas as $data) {
                         $this->manager->remove($data);
                     }
                     $this->manager->flush();

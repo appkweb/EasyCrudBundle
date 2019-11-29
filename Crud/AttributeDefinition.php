@@ -31,6 +31,7 @@ class AttributeDefinition
         'Date picker' => 'Date picker',
         'Simple select' => 'Simple select',
         'Add list' => 'Add list',
+        'Section' => 'Section',
 //        'Multiple select' => 'Multiple select'
     ];
 

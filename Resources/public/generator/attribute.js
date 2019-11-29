@@ -40,7 +40,7 @@ function checkType() {
     size = true;
     attr_type = document.getElementById('attribute_def_type').value;
     switch (true) {
-        case attr_type == "Simple select" || attr_type == "Add list" || attr_type == "Multiple select":
+        case attr_type == "Simple select" || attr_type == "Add list" || attr_type == "Multiple select" || attr_type == "Section":
             document.getElementById('entity-container').style.display = "block";
             break;
         default:
@@ -242,7 +242,7 @@ function loadEdit(btn) {
     can_be_listed = tr.cells[4].textContent == 'true' || false;
     can_be_edited = tr.cells[5].textContent == 'true' || false;
     can_be_showed = tr.cells[6].textContent == 'true' || false;
-    can_be_null = tr.cells[7].textContent  == 'true' || false;
+    can_be_null = tr.cells[7].textContent == 'true' || false;
     unique = tr.cells[8].textContent;
     order = tr.cells[9].textContent;
 

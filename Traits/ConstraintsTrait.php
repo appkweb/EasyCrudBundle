@@ -15,6 +15,7 @@ namespace Appkweb\Bundle\EasyCrudBundle\Traits;
 
 use Appkweb\Bundle\EasyCrudBundle\Crud\AttributeDefinition;
 use Appkweb\Bundle\EasyCrudBundle\Crud\CrudDefinition;
+use Appkweb\Bundle\EasyCrudBundle\Generator\YamlCrudTranslatorInterface;
 use Appkweb\Bundle\EasyCrudBundle\Utils\CrudHelper;
 use Appkweb\Bundle\EasyCrudBundle\Validator\CrudValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,13 +46,19 @@ trait ConstraintsTrait
      */
     private $manager;
 
+    /**
+     * @var YamlCrudTranslatorInterface
+     */
+    private $yamlCrudTranslator;
+
     private $value;
     private $type;
     private $id;
 
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(EntityManagerInterface $manager,YamlCrudTranslatorInterface $yamlCrudTranslator)
     {
         $this->manager = $manager;
+        $this->yamlCrudTranslator = $yamlCrudTranslator;
     }
 
 

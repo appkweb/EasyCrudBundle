@@ -1,9 +1,19 @@
 {% for attribute in crud_def.attributes %}
     {% if attribute.type == "Add list" %}
         {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\AddListController::getAddList', {'classname': attribute.entityRelation,'parent_classname':crud_def.classname,'id':entity.id,'allow_actions':false})) }}
-    {% else %}
+    {% elseif attribute.type != "Section" %}
         <div class="col-md-6 center">
-            <strong>{{ attribute.label }} : </strong> {% if attribute.type == "Date picker" %}{{ attribute(entity, attribute.name) | date('d/m/Y') }}{% else %}{{ attribute(entity, attribute.name) }}{% endif %}
+            <strong>{{ attribute.label }}
+                : </strong> {% if attribute.type == "Date picker" %}{{ attribute(entity, attribute.name) | date('d/m/Y') }}{% else %}{{ attribute(entity, attribute.name) }}{% endif %}
+        </div>
+    {% else %}
+        <div class="card col-md-11 center no-padding space ">
+        <div class="card-header" style="background-color: #DDDDDD">
+            <h3>{{ attribute.entityRelation }}</h3>
+        </div>
+        <div class="card-body">
+        <div class="row">
+            {{ render(controller('Appkweb\\Bundle\\EasyCrudBundle\\Controller\\CrudController::getPrintView',{'classname': attribute.entityRelation,'id': attribute(entity, 'id')})) }}
         </div>
     {% endif %}
 {% endfor %}

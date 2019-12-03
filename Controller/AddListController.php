@@ -87,7 +87,6 @@ class AddListController
             $template = $this->getFormView($crudDef->getClassName(), false, $id, 'array',$data);
             $args['template'] = $template;
         }
-        dump($entity);
         $args['status'] = $status;
         $this->flash->add('success', $crudDef->getLabel() . ' mis à jour avec succès !');
         return new JsonResponse($args);

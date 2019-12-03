@@ -241,28 +241,32 @@ trait CrudTrait
                 }
                 if (array_key_exists($descriptor, $datas) ) {
                     $data = trim(preg_replace('/\s+/', ' ', $datas[$descriptor]));
-                    switch ($attribute->getType()) {
-                        case 'Simple image picker' :
-                            $oldFile = $entity->{'get' . ucwords($attribute->getName())}();
-                            if ($oldFile && $data) {
-                                $this->gallery->remove($oldFile);
-                            }
-                            if ($data) {
-                                $data = $this->gallery->upload($datas[$descriptor]);
-                            }
-                            break;
-                        case 'Date picker' :
-                            $data = \DateTime::createFromFormat('d/m/Y', $data);
-                            break;
-                        case 'Simple select' :
-                            if (is_string($data)) {
-                                $crud = $this->getCrudDefinition($attribute->getEntityRelation());
-                                $referer = $crud->getReferrer();
-                                $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
-                            }
-                            break;
+                    if ($data != "" && $data)
+                    {
+                        switch ($attribute->getType()) {
+                            case 'Simple image picker' :
+                                $oldFile = $entity->{'get' . ucwords($attribute->getName())}();
+                                if ($oldFile && $data) {
+                                    $this->gallery->remove($oldFile);
+                                }
+                                if ($data) {
+                                    $data = $this->gallery->upload($datas[$descriptor]);
+                                }
+                                break;
+                            case 'Date picker' :
+                                $data = \DateTime::createFromFormat('d/m/Y', $data);
+                                break;
+                            case 'Simple select' :
+                                if (is_string($data)) {
+                                    $crud = $this->getCrudDefinition($attribute->getEntityRelation());
+                                    $referer = $crud->getReferrer();
+                                    $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
+                                }
+                                break;
+                        }
+                        $entity->{'set' . ucwords($attribute->getName())}($data);
                     }
-                    $entity->{'set' . ucwords($attribute->getName())}($data);
+
                 }
 
             }

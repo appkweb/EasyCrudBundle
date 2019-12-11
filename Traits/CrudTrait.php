@@ -186,7 +186,9 @@ trait CrudTrait
     {
         $id = false;
         $this->form->handleRequest($this->request);
+
         if ($this->form->isSubmitted()) {
+//                    dump($this->request);die;
             if ($entity->getId()) $id = $entity->getId();
             $this->crudValidator->validate($crudDef, $this->form->getData(), $id);
             if ($this->crudValidator->isValid()) {

@@ -100,6 +100,8 @@ trait CrudTrait
      */
     protected $crudValidator;
 
+    public $redirectRoute = false;
+
 
     public function __construct(KernelInterface $kernel, CrudValidatorInterface $crudValidator, RequestStack $requestStack, Environment $template, FlashBagInterface $flash, GalleryInterface $gallery, RouterInterface $route, EntityManagerInterface $entityManager, YamlCrudTranslatorInterface $yamlCrudTranslator, FormFactoryInterface $formFactory)
     {
@@ -135,9 +137,13 @@ trait CrudTrait
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json', $data = [], $onlyAttribute = false)
+    public function getFormView(string $classname, $parent_classname = false, $id = false, $formatResponse = 'json', $data = [], $onlyAttribute = false, $redirectPath = false)
     {
+
         $crudDef = $this->getCrudDefinition($classname);
+        if (!$this->redirectRoute) {
+            $this->redirectRoute = $redirectPath;
+        }
         $entity = $this->getEntityInstance($crudDef, $id);
         if (!$classname) throw new \Exception('Classname param is missing !', 500);
         $this->form = $this->getForm($crudDef, $entity, $data);
@@ -188,13 +194,13 @@ trait CrudTrait
         $this->form->handleRequest($this->request);
 
         if ($this->form->isSubmitted()) {
-//                    dump($this->request);die;
             if ($entity->getId()) $id = $entity->getId();
             $this->crudValidator->validate($crudDef, $this->form->getData(), $id);
             if ($this->crudValidator->isValid()) {
                 $this->save($crudDef, $entity);
                 $this->flash->add("success", $crudDef->getLabel() . " mis à jour avec succès !");
-                $response = new RedirectResponse($this->route->generate('appkweb_easy_crud_list', ['classname' => $crudDef->getClassName()]));
+
+                $response = new RedirectResponse($this->redirectRoute);
                 $response->send(); // Can't return RedirectResponse in embedded Controller. We need to send the response
             }
         }
@@ -241,10 +247,9 @@ trait CrudTrait
                     $this->manager->persist($data);
                     $entity->{'set' . ucwords($attribute->getName())}($data);
                 }
-                if (array_key_exists($descriptor, $datas) ) {
+                if (array_key_exists($descriptor, $datas)) {
                     $data = trim(preg_replace('/\s+/', ' ', $datas[$descriptor]));
-                    if ($data != "" && $data)
-                    {
+                    if ($data != "" && $data) {
                         switch ($attribute->getType()) {
                             case 'Simple image picker' :
                                 $oldFile = $entity->{'get' . ucwords($attribute->getName())}();
@@ -262,15 +267,23 @@ trait CrudTrait
                                 if (is_string($data)) {
                                     $crud = $this->getCrudDefinition($attribute->getEntityRelation());
                                     $referer = $crud->getReferrer();
-                                    $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy(['id' => $data]);
+                                    if ($referer == 'Id') {
+                                        $referer = 'id';
+                                    }
+                                    $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
+                                    if (is_string($data)) {
+                                        $data = null;
+                                    }
                                 }
                                 break;
                         }
-                        $entity->{'set' . ucwords($attribute->getName())}($data);
+                        if (is_string($data) && $attribute->getEntityRelation() != false) {
+                            $entity->{'set' . ucwords($attribute->getName())}(null);
+                        } else {
+                            $entity->{'set' . ucwords($attribute->getName())}($data);
+                        }
                     }
-
                 }
-
             }
         }
         return $entity;

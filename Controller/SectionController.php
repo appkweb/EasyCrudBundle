@@ -62,7 +62,10 @@ class SectionController
         foreach ($parent_crud_def->getAttributes() as $attr) {
             if ($attr->getEntityRelation() == $classname) {
                 $attrName = $attr->getName();
-                if ($parentEntity) $id = $parentEntity->{'get' . ucwords($attr->getName())}()->getId();
+                if ($parentEntity)
+                {
+                    $id = $parentEntity->{'get' . ucwords('Id')}();
+                }
             }
         }
 

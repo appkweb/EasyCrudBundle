@@ -229,6 +229,10 @@ trait CrudTrait
      */
     protected function hydrateObject(CrudDefinition $crudDef, $entity, array $datas, CrudDefinition $parentCrudDef = null, $parentEntity = false)
     {
+        $extendedDatas = $this->request->get('crud_maker');
+        foreach ($extendedDatas as $key => $extended) {
+            $datas[$key] = $extended;
+        }
         $section = [];
         if ($parentCrudDef && !$parentEntity || $parentEntity && !$parentCrudDef) {
             throw new \Exception("Error ! if you transmit a parent you need 2 params (Entity and CrudDefiniton of it)", 500);
@@ -242,8 +246,14 @@ trait CrudTrait
                 if ($attribute->getType() == 'Section') {
                     $crud = $this->getCrudDefinition($attribute->getEntityRelation());
                     $referer = $crud->getReferrer();
-                    $instance = $this->getEntityInstance($crud, $entity->{'get' . ucwords($attribute->getName())}());
+                    $instance = $entity->{'get' . ucwords($attribute->getName())}();
+                    $id = null;
+                    if ($instance) {
+                        $id = $instance->getId();
+                    }
+                    $instance = $this->getEntityInstance($crud, $entity->{'get' . ucwords($attribute->getName())}(), $id);
                     $data = $this->hydrateObject($crud, $instance, $datas);
+//                    dump($data);die;
                     $this->manager->persist($data);
                     $entity->{'set' . ucwords($attribute->getName())}($data);
                 }
@@ -270,21 +280,24 @@ trait CrudTrait
                                     if ($referer == 'Id') {
                                         $referer = 'id';
                                     }
-                                    $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy([$referer => $data]);
+                                    $data = $this->manager->getRepository(CrudHelper::getAbsoluteClassName($attribute->getEntityRelation()))->findOneBy(['id' => $data]);
                                 }
                                 break;
                         }
                         if (is_string($data) && $attribute->getEntityRelation() != false) {
-                            $entity->{'set' . ucwords($attribute->getName())}(null);
+
                         } else {
                             $entity->{'set' . ucwords($attribute->getName())}($data);
+
                         }
                     }
+
                 }
             }
         }
         return $entity;
     }
+
 
     /**
      * @param CrudDefinition $crudDef

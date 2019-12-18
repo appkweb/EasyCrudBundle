@@ -143,6 +143,8 @@ trait CrudTrait
         $crudDef = $this->getCrudDefinition($classname);
         if (!$this->redirectRoute) {
             $this->redirectRoute = $redirectPath;
+        } else {
+            $this->redirectRoute = $this->route->generate('supervisor_client_pro_add', ['classname' => $classname, 'id' => $id]);
         }
         $entity = $this->getEntityInstance($crudDef, $id);
         if (!$classname) throw new \Exception('Classname param is missing !', 500);

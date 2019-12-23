@@ -144,7 +144,7 @@ trait CrudTrait
         if ($redirectPath) {
             $this->redirectRoute = $redirectPath;
         } else {
-            $this->redirectRoute = $this->route->generate('appkweb_easy_crud_add', ['classname' => $classname, 'id' => $id]);
+            $this->redirectRoute = $this->route->generate('appkweb_easy_crud_list', ['classname' => $classname]);
         }
         $entity = $this->getEntityInstance($crudDef, $id);
         if (!$classname) throw new \Exception('Classname param is missing !', 500);

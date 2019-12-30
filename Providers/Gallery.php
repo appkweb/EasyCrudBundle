@@ -130,7 +130,7 @@ class Gallery implements GalleryInterface
      */
     public function getImgByBlob(string $blob)
     {
-        $blobArray = explode(',', base64_decode($blob));
+        $blobArray = explode(',', $blob);
         return imagecreatefromstring(base64_decode($blobArray[1]));
     }
 

@@ -141,7 +141,7 @@ class Gallery implements GalleryInterface
      */
     public function getImgExtensionByBlob(string $blob)
     {
-        $blobArray = explode(';', base64_decode($blob));
+        $blobArray = explode(';', $blob);
         $blobArray = explode('/', $blobArray[0]);
         $extension = $blobArray[1];
         if ($extension === 'jpeg') {

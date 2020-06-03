@@ -1,3 +1,4 @@
+# /!\ Is a prototype don't use this in your project
 ## Get started with Symfony 4 flex
 
     composer require appkweb/easy-crud-bundle "dev-master"
